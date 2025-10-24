@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Eye, EyeOff, TrendingUp, TrendingDown } from 'lucide-react';
+import { ChevronDown, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
 import TransactionDetailCard from '../TransactionDetailCard/TransactionDetailCard';
 import './CategoryAnalysisCard.css';
 
 const CategoryAnalysisCard = ({ category, totalIncome, totalExpense }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showTransactions, setShowTransactions] = useState(false);
 
   const formatAmount = (amount) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -103,33 +102,21 @@ const CategoryAnalysisCard = ({ category, totalIncome, totalExpense }) => {
       
       {isExpanded && (
         <div className="category-content">
-          <div className="category-actions">
-            <button 
-              className={`toggle-transactions-button ${showTransactions ? 'active' : ''}`}
-              onClick={() => setShowTransactions(!showTransactions)}
-            >
-              {showTransactions ? <EyeOff size={16} /> : <Eye size={16} />}
-              {showTransactions ? 'Ocultar' : 'Ver'} Transações
-            </button>
+          <div className="transactions-list">
+            {category.transactions.length > 0 ? (
+              category.transactions.map(transaction => (
+                <TransactionDetailCard
+                  key={transaction.id}
+                  transaction={transaction}
+                  category={{ name: category.name, color: category.color }}
+                />
+              ))
+            ) : (
+              <div className="no-transactions">
+                <p>Nenhuma transação encontrada nesta categoria</p>
+              </div>
+            )}
           </div>
-          
-          {showTransactions && (
-            <div className="transactions-list">
-              {category.transactions.length > 0 ? (
-                category.transactions.map(transaction => (
-                  <TransactionDetailCard
-                    key={transaction.id}
-                    transaction={transaction}
-                    category={{ name: category.name, color: category.color }}
-                  />
-                ))
-              ) : (
-                <div className="no-transactions">
-                  <p>Nenhuma transação encontrada nesta categoria</p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
     </div>

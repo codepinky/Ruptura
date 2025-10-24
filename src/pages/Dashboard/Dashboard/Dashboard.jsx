@@ -4,8 +4,9 @@ import SummaryCard from '../../../components/Cards/SummaryCard/SummaryCard';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
 import ExpenseChart from '../../../components/Charts/ExpenseChart/ExpenseChart';
 import BalanceChart from '../../../components/Charts/BalanceChart/BalanceChart';
-import TransactionForm from '../../../components/Forms/TransactionForm/TransactionForm';
-import { DollarSign, TrendingUp, TrendingDown, Wallet, Plus } from 'lucide-react';
+import FloatingButton from '../../../components/FloatingButton/FloatingButton';
+import SimpleTransactionForm from '../../../components/SimpleTransactionForm/SimpleTransactionForm';
+import { DollarSign, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -19,22 +20,13 @@ const Dashboard = () => {
   } = useFinancial();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState(null);
 
-  const handleEditTransaction = (transaction) => {
-    setEditingTransaction(transaction);
+  const handleOpenForm = () => {
     setIsFormOpen(true);
-  };
-
-  const handleDeleteTransaction = (transactionId) => {
-    if (window.confirm('Tem certeza que deseja excluir esta transação?')) {
-      deleteTransaction(transactionId);
-    }
   };
 
   const handleCloseForm = () => {
     setIsFormOpen(false);
-    setEditingTransaction(null);
   };
 
   // Dados para os cards de resumo
@@ -178,14 +170,10 @@ const Dashboard = () => {
           <h1 className="dashboard-title">Dashboard</h1>
           <p className="dashboard-subtitle">Visão geral das suas finanças</p>
         </div>
-        <button 
-          className="add-transaction-fab"
-          onClick={() => setIsFormOpen(true)}
-          title="Adicionar transação"
-        >
-          <Plus size={24} />
-        </button>
       </div>
+
+      {/* Botão Flutuante */}
+      <FloatingButton onClick={handleOpenForm} />
 
       {/* Cards de Resumo */}
       <div className="summary-grid">
@@ -227,22 +215,21 @@ const Dashboard = () => {
           ) : (
             <div className="empty-state">
               <p>Nenhuma transação encontrada</p>
-              <button 
-                className="add-transaction-button"
-                onClick={() => setIsFormOpen(true)}
-              >
-                Adicionar primeira transação
-              </button>
+        <button 
+          className="add-transaction-button"
+          onClick={handleOpenForm}
+        >
+          Adicionar primeira transação
+        </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal do Formulário */}
-      <TransactionForm
+      {/* Formulário de Transação */}
+      <SimpleTransactionForm
         isOpen={isFormOpen}
         onClose={handleCloseForm}
-        transaction={editingTransaction}
       />
     </div>
   );

@@ -15,29 +15,6 @@
   flex: 1;
 }
 
-.add-transaction-fab {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  color: var(--text-inverse);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-lg);
-  transition: all 0.3s ease;
-  z-index: 100;
-}
-
-.add-transaction-fab:hover {
-  transform: scale(1.1);
-  box-shadow: var(--shadow-lg);
-}
 
 .dashboard-title {
   font-size: 2rem;
@@ -165,13 +142,6 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
-  }
-  
-  .add-transaction-fab {
-    bottom: 1rem;
-    right: 1rem;
-    width: 50px;
-    height: 50px;
   }
 }
 

@@ -237,14 +237,13 @@
   }
   
   .navbar-menu {
-    margin-right: 12px;
+    display: none; /* Oculta o botão de menu no mobile */
   }
   
   .navbar-search {
     margin-right: 8px;
   }
   
-  .navbar-menu-btn,
   .navbar-action-btn {
     width: 36px;
     height: 36px;
@@ -280,14 +279,13 @@
   }
   
   .navbar-menu {
-    margin-right: 8px;
+    display: none; /* Oculta o botão de menu no mobile */
   }
   
   .navbar-search {
     margin-right: 6px;
   }
   
-  .navbar-menu-btn,
   .navbar-action-btn {
     width: 32px;
     height: 32px;
@@ -331,14 +329,13 @@
   }
   
   .navbar-menu {
-    margin-right: 6px;
+    display: none; /* Oculta o botão de menu no mobile */
   }
   
   .navbar-search {
     margin-right: 4px;
   }
   
-  .navbar-menu-btn,
   .navbar-action-btn {
     width: 28px;
     height: 28px;

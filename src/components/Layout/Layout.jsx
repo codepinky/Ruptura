@@ -23,7 +23,7 @@ const Layout = ({ children }) => {
         </main>
       </div>
       
-      <HelpGuide />
+      <HelpGuide onMenuClick={toggleSidebar} />
     </div>
   );
 };

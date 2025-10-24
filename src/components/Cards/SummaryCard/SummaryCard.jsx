@@ -22,9 +22,8 @@ const SummaryCard = ({ title, value, change, icon, color }) => {
       <div className="card-footer">
         <div className="card-change" style={{ color: changeColor }}>
           {React.createElement(changeIcon, { size: 16 })}
-          <span>{Math.abs(change)}%</span>
+          <span>{Math.abs(change).toFixed(1)}%</span>
         </div>
-        <span className="card-period">vs mês anterior</span>
       </div>
     </div>
   );
