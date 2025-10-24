@@ -32,7 +32,8 @@
 
 .navbar-search {
   flex: 1;
-  max-width: 400px;
+  max-width: 600px;
+  margin: 0 auto;
   margin-right: 16px;
 }
 
@@ -198,8 +199,29 @@
 
 /* ===== RESPONSIVIDADE ===== */
 
+/* Desktop - Centralizar barra de pesquisa */
+@media (min-width: 1025px) {
+  .navbar {
+    justify-content: space-between;
+  }
+  
+  .navbar-search {
+    flex: 0 1 600px;
+    margin: 0;
+    order: 2;
+  }
+  
+  .navbar-menu {
+    order: 1;
+  }
+  
+  .navbar-actions {
+    order: 3;
+  }
+}
+
 /* Tablets grandes */
-@media (max-width: 1024px) {
+@media (max-width: 1024px) and (min-width: 769px) {
   .navbar {
     left: 0;
     width: 100%;

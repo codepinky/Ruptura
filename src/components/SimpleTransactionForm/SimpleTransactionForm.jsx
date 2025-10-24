@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign, Calendar, Tag, FileText } from 'lucide-react';
 import { useFinancial, TRANSACTION_TYPES } from '../../context/FinancialContext';
+import { useTheme } from '../../context/ThemeContext';
 import './SimpleTransactionForm.css';
 
 const SimpleTransactionForm = ({ isOpen, onClose }) => {
   const { categories, addTransaction } = useFinancial();
+  const { currentTheme } = useTheme();
   
   const [formData, setFormData] = useState({
     description: '',
@@ -108,7 +110,7 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="simple-form" onClick={(e) => e.stopPropagation()}>
+      <div className={`simple-form ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <h2>Nova Transação</h2>
           <button className="close-btn" onClick={onClose}>

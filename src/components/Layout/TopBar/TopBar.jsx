@@ -1,26 +1,24 @@
-import React, { useState } from 'react';
-import { Menu, Bell, Search, User, X } from 'lucide-react';
+import React from 'react';
+import { Menu, Search, X } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
+import { useSearch } from '../../../context/SearchContext';
 import './TopBar.css';
 
 const TopBar = ({ onMenuClick }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const { searchQuery, setSearchQuery, isSearchOpen, openSearch, closeSearch, clearSearch } = useSearch();
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
 
-  const clearSearch = () => {
-    setSearchQuery('');
-  };
-
   const handleSearchFocus = () => {
-    setIsSearchFocused(true);
+    openSearch();
   };
 
-  const handleSearchBlur = () => {
-    setIsSearchFocused(false);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      closeSearch();
+    }
   };
 
   return (
@@ -34,15 +32,15 @@ const TopBar = ({ onMenuClick }) => {
 
       {/* Seção de Pesquisa */}
       <div className="navbar-section navbar-search">
-        <div className={`navbar-search-container ${isSearchFocused ? 'focused' : ''}`}>
+        <div className={`navbar-search-container ${isSearchOpen ? 'focused' : ''}`}>
           <Search size={18} className="navbar-search-icon" />
           <input
             type="text"
-            placeholder="Pesquisar..."
+            placeholder="Pesquisar transações, categorias, metas..."
             value={searchQuery}
             onChange={handleSearchChange}
             onFocus={handleSearchFocus}
-            onBlur={handleSearchBlur}
+            onKeyDown={handleKeyDown}
             className="navbar-search-input"
           />
           {searchQuery && (
@@ -56,15 +54,6 @@ const TopBar = ({ onMenuClick }) => {
       {/* Seção de Ações */}
       <div className="navbar-section navbar-actions">
         <ThemeToggle />
-        
-        <button className="navbar-action-btn navbar-notifications" aria-label="Notificações">
-          <Bell size={18} />
-          <span className="navbar-notification-badge">3</span>
-        </button>
-        
-        <button className="navbar-action-btn navbar-user" aria-label="Perfil do usuário">
-          <User size={18} />
-        </button>
       </div>
     </header>
   );

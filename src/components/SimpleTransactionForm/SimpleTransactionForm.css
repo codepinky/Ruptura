@@ -25,6 +25,13 @@
   border: 1px solid #e5e7eb;
 }
 
+/* Tema escuro */
+.simple-form.dark-theme {
+  background: #1f2937;
+  border: 1px solid #374151;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
 .form-header {
   display: flex;
   justify-content: space-between;
@@ -41,6 +48,15 @@
   margin: 0;
 }
 
+/* Tema escuro - cabeçalho */
+.simple-form.dark-theme .form-header {
+  border-bottom: 1px solid #374151;
+}
+
+.simple-form.dark-theme .form-header h2 {
+  color: #f9fafb;
+}
+
 .close-btn {
   background: none;
   border: none;
@@ -54,6 +70,16 @@
 .close-btn:hover {
   background-color: #f3f4f6;
   color: #374151;
+}
+
+/* Tema escuro - botão fechar */
+.simple-form.dark-theme .close-btn {
+  color: #9ca3af;
+}
+
+.simple-form.dark-theme .close-btn:hover {
+  background-color: #374151;
+  color: #f9fafb;
 }
 
 .form-content {
@@ -72,6 +98,11 @@
   font-weight: 500;
   color: #374151;
   margin-bottom: 0.5rem;
+}
+
+/* Tema escuro - labels */
+.simple-form.dark-theme .form-group label {
+  color: #f9fafb;
 }
 
 .form-group input,
@@ -94,6 +125,22 @@
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
+/* Tema escuro - inputs */
+.simple-form.dark-theme .form-group input,
+.simple-form.dark-theme .form-group select,
+.simple-form.dark-theme .form-group textarea {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.simple-form.dark-theme .form-group input:focus,
+.simple-form.dark-theme .form-group select:focus,
+.simple-form.dark-theme .form-group textarea:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
 .form-group input.error,
 .form-group select.error {
   border-color: #ef4444;
@@ -109,6 +156,11 @@
   font-size: 0.75rem;
   margin-top: 0.25rem;
   display: block;
+}
+
+/* Tema escuro - mensagens de erro */
+.simple-form.dark-theme .error {
+  color: #f87171;
 }
 
 .form-actions {
@@ -133,6 +185,18 @@
 .cancel-btn:hover {
   background-color: #f9fafb;
   border-color: #9ca3af;
+}
+
+/* Tema escuro - botão cancelar */
+.simple-form.dark-theme .cancel-btn {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.simple-form.dark-theme .cancel-btn:hover {
+  background-color: #4b5563;
+  border-color: #6b7280;
 }
 
 .submit-btn {
