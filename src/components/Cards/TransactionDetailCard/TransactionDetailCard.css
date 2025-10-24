@@ -1,0 +1,153 @@
+.transaction-detail-card {
+  background: var(--bg-card) !important;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.transaction-detail-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.transaction-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.transaction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.transaction-main-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.transaction-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.transaction-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.category-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.type-tag {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.type-tag.income {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.type-tag.expense {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+.transaction-amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.transaction-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.detail-item svg {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+/* Forçar modo escuro para TransactionDetailCard */
+.dark .transaction-detail-card {
+  background: #1e293b !important;
+}
+
+/* Forçar modo claro para TransactionDetailCard */
+.light .transaction-detail-card {
+  background: #ffffff !important;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .transaction-detail-card {
+    padding: 1rem;
+  }
+  
+  .transaction-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .transaction-main-info {
+    order: 1;
+  }
+  
+  .transaction-amount {
+    order: 2;
+    text-align: center;
+    font-size: 1.125rem;
+  }
+  
+  .transaction-icon {
+    order: 3;
+    align-self: center;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .transaction-tags {
+    justify-content: center;
+  }
+}
+

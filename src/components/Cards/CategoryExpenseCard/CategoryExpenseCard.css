@@ -1,0 +1,196 @@
+.category-expense-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.category-expense-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.category-header:hover {
+  background-color: var(--bg-hover);
+}
+
+.category-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.category-color-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.category-details {
+  flex: 1;
+}
+
+.category-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.category-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.transaction-count {
+  font-weight: 500;
+}
+
+.average-amount {
+  font-weight: 500;
+}
+
+.category-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-right: 1rem;
+}
+
+.amount-info {
+  text-align: right;
+}
+
+.total-amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.125rem 0;
+}
+
+.percentage {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.progress-bar {
+  width: 120px;
+  height: 8px;
+  background: var(--border-primary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.expand-icon {
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.category-content {
+  border-top: 1px solid var(--border-primary);
+  padding: 1.5rem;
+  background-color: var(--bg-tertiary);
+}
+
+.category-actions {
+  margin-bottom: 1rem;
+}
+
+.toggle-transactions-button {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--text-inverse);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.toggle-transactions-button:hover {
+  transform: translateY(-1px);
+}
+
+.toggle-transactions-button.active {
+  background: linear-gradient(135deg, var(--text-secondary), var(--text-tertiary));
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.no-transactions {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+.no-transactions p {
+  margin: 0;
+  font-style: italic;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .category-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .category-info {
+    justify-content: center;
+  }
+  
+  .category-summary {
+    align-items: center;
+    margin-right: 0;
+  }
+  
+  .amount-info {
+    text-align: center;
+  }
+  
+  .progress-bar {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .expand-icon {
+    align-self: center;
+  }
+  
+  .category-stats {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+

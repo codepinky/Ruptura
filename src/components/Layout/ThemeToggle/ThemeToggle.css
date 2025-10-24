@@ -1,0 +1,113 @@
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-secondary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.theme-toggle:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease;
+}
+
+.toggle-icon.light {
+  color: var(--color-warning);
+}
+
+.toggle-icon.dark {
+  color: var(--color-info);
+}
+
+.toggle-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Versão compacta para mobile */
+@media (max-width: 768px) {
+  .theme-toggle {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  
+  .toggle-label {
+    display: none;
+  }
+  
+  .toggle-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Dispositivos móveis pequenos */
+@media (max-width: 480px) {
+  .theme-toggle {
+    padding: 4px 6px;
+    gap: 4px;
+    border-radius: 6px;
+  }
+  
+  .toggle-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* iPhone SE e dispositivos muito pequenos */
+@media (max-width: 375px) {
+  .theme-toggle {
+    padding: 3px 5px;
+    gap: 3px;
+    border-radius: 4px;
+  }
+  
+  .toggle-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Versão apenas ícone */
+.theme-toggle.icon-only {
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+}
+
+.theme-toggle.icon-only .toggle-label {
+  display: none;
+}
+
+.theme-toggle.icon-only .toggle-icon {
+  width: 20px;
+  height: 20px;
+}
