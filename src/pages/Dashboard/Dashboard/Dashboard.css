@@ -43,6 +43,13 @@
   margin-bottom: 2rem;
 }
 
+/* Ocultar grid de gráficos no mobile */
+@media (max-width: 768px) {
+  .charts-grid {
+    display: none !important;
+  }
+}
+
 .recent-transactions {
   background: var(--bg-card);
   border-radius: 16px;
@@ -113,6 +120,108 @@
   transform: translateY(-1px);
 }
 
+/* Carrossel de Gráficos Mobile */
+.charts-carousel-mobile {
+  display: none; /* Ocultar por padrão (desktop) */
+  position: relative;
+  margin-bottom: 2rem;
+  margin-top: 1.5rem; /* Espaçamento do conteúdo acima */
+}
+
+.carousel-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  gap: 0;
+}
+
+.carousel-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.carousel-item {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border-primary);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.dot.active {
+  background-color: var(--color-primary);
+}
+
+/* Card Unificado Mobile */
+.summary-unified-mobile {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-primary);
+  margin-bottom: 2rem;
+  display: none; /* Ocultar por padrão (desktop) */
+  margin-top: 1.5rem; /* Espaçamento após header */
+}
+
+.summary-unified-mobile .unified-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.summary-unified-mobile .unified-item:not(:last-child) {
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.summary-unified-mobile .unified-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-inverse);
+  flex-shrink: 0;
+}
+
+.summary-unified-mobile .unified-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-unified-mobile .unified-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.summary-unified-mobile .unified-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .dashboard-header {
@@ -125,13 +234,15 @@
   }
   
   .summary-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    display: none; /* Ocultar cards separados no mobile */
   }
   
-  .charts-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .summary-unified-mobile {
+    display: block; /* Mostrar card unificado no mobile */
+  }
+  
+  .charts-carousel-mobile {
+    display: block; /* Mostrar carrossel no mobile */
   }
   
   .recent-transactions {

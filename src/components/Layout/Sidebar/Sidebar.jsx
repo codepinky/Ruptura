@@ -32,7 +32,7 @@ const Sidebar = ({ sidebarOpen }) => {
     <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
       <div className="sidebar-drag-indicator"></div>
       <div className="sidebar-header">
-        <h2 className="sidebar-title">💰 Finanças</h2>
+        <h2 className="sidebar-title">💰 Ruptura</h2>
         <p className="sidebar-subtitle">Controle Financeiro</p>
       </div>
       

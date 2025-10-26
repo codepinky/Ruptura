@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import SummaryCard from '../../../components/Cards/SummaryCard/SummaryCard';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
@@ -20,6 +20,8 @@ const Dashboard = () => {
   } = useFinancial();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const carouselRef = useRef(null);
 
   const handleOpenForm = () => {
     setIsFormOpen(true);
@@ -28,6 +30,22 @@ const Dashboard = () => {
   const handleCloseForm = () => {
     setIsFormOpen(false);
   };
+
+  // Função para atualizar indicadores do carrossel
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    const handleScroll = () => {
+      const scrollLeft = carousel.scrollLeft;
+      const slideWidth = carousel.clientWidth;
+      const newActiveSlide = Math.round(scrollLeft / slideWidth);
+      setActiveSlide(newActiveSlide);
+    };
+
+    carousel.addEventListener('scroll', handleScroll);
+    return () => carousel.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Dados para os cards de resumo
   const summaryData = useMemo(() => {
@@ -149,6 +167,11 @@ const Dashboard = () => {
       });
     }
     
+    // Para mobile, mostrar apenas dias alternados (15 pontos ao invés de 30)
+    if (window.innerWidth <= 768) {
+      return last30Days.filter((_, index) => index % 2 === 0);
+    }
+    
     return last30Days;
   }, [transactions, getBalance]);
 
@@ -168,7 +191,7 @@ const Dashboard = () => {
       <div className="dashboard-header">
         <div className="header-content">
           <h1 className="dashboard-title">Dashboard</h1>
-          <p className="dashboard-subtitle">Visão geral das suas finanças</p>
+          <p className="dashboard-subtitle">Visão geral do Ruptura</p>
         </div>
       </div>
 
@@ -189,10 +212,41 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Gráficos */}
+      {/* Card Unificado Mobile */}
+      <div className="summary-unified-mobile">
+        {summaryData.map((item, index) => (
+          <div key={index} className="unified-item">
+            <div className="unified-icon" style={{ backgroundColor: item.color }}>
+              {React.createElement(item.icon, { size: 20 })}
+            </div>
+            <div className="unified-content">
+              <h3 className="unified-title">{item.title}</h3>
+              <p className="unified-value">{item.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Gráficos Desktop */}
       <div className="charts-grid">
         <ExpenseChart data={expenseData} />
         <BalanceChart data={balanceData} />
+      </div>
+
+      {/* Carrossel de Gráficos Mobile */}
+      <div className="charts-carousel-mobile">
+        <div className="carousel-container" ref={carouselRef}>
+          <div className="carousel-item">
+            <ExpenseChart data={expenseData} />
+          </div>
+          <div className="carousel-item">
+            <BalanceChart data={balanceData} />
+          </div>
+        </div>
+        <div className="carousel-indicators">
+          <span className={`dot ${activeSlide === 0 ? 'active' : ''}`}></span>
+          <span className={`dot ${activeSlide === 1 ? 'active' : ''}`}></span>
+        </div>
       </div>
 
       {/* Transações Recentes */}

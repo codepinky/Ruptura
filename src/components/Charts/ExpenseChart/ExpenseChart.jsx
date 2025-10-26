@@ -1,64 +1,252 @@
-import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import React, { useRef, useEffect, useState } from 'react';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Filler
+} from 'chart.js';
+import { Pie } from 'react-chartjs-2';
 import './ExpenseChart.css';
 
+// Registrar componentes necessários
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Filler
+);
+
 const ExpenseChart = ({ data }) => {
+  const chartRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
+  // Detectar mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Paleta de cores minimalista com gradientes sutis
   const COLORS = [
-    '#3B82F6', '#8B5CF6', '#EF4444', '#F59E0B', 
-    '#10B981', '#EC4899', '#6B7280', '#14B8A6'
+    'rgba(59, 130, 246, 0.8)',   // Azul suave
+    'rgba(139, 92, 246, 0.8)',   // Roxo suave
+    'rgba(239, 68, 68, 0.8)',    // Vermelho suave
+    'rgba(245, 158, 11, 0.8)',   // Amarelo suave
+    'rgba(16, 185, 129, 0.8)',   // Verde suave
+    'rgba(236, 72, 153, 0.8)',   // Rosa suave
+    'rgba(107, 114, 128, 0.8)',  // Cinza suave
+    'rgba(20, 184, 166, 0.8)'     // Turquesa suave
   ];
 
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0];
-      return (
-        <div className="chart-tooltip">
-          <p className="tooltip-label">{data.name}</p>
-          <p className="tooltip-value">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(data.value)}
-          </p>
-          <p className="tooltip-percentage">{data.payload.percentage}%</p>
-        </div>
-      );
-    }
-    return null;
+  const BORDER_COLORS = [
+    'rgba(59, 130, 246, 1)',
+    'rgba(139, 92, 246, 1)',
+    'rgba(239, 68, 68, 1)',
+    'rgba(245, 158, 11, 1)',
+    'rgba(16, 185, 129, 1)',
+    'rgba(236, 72, 153, 1)',
+    'rgba(107, 114, 128, 1)',
+    'rgba(20, 184, 166, 1)'
+  ];
+
+  // Preparar dados para Chart.js
+  const chartData = {
+    labels: data.map(item => item.name),
+    datasets: [
+      {
+        data: data.map(item => item.value),
+        backgroundColor: COLORS,
+        borderColor: BORDER_COLORS,
+        borderWidth: 2,
+        hoverBackgroundColor: COLORS.map(color => color.replace('0.8', '1')),
+        hoverBorderWidth: 3,
+        hoverOffset: 8,
+        cutout: isMobile ? '65%' : '55%',
+        spacing: 2,
+        animation: {
+          animateRotate: true,
+          animateScale: true,
+          duration: 1000,
+          easing: 'easeInOutQuart'
+        }
+      }
+    ]
   };
+
+  // Configurações do gráfico
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: !isMobile,
+        position: 'right',
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'circle',
+          padding: 15,
+          font: {
+            size: isMobile ? 11 : 12,
+            weight: '500'
+          },
+          color: 'var(--text-primary)',
+          generateLabels: (chart) => {
+            const data = chart.data;
+            if (data.labels?.length && data.datasets?.length) {
+              return data.labels.map((label, i) => ({
+                text: label,
+                fillStyle: data.datasets[0].backgroundColor[i],
+                strokeStyle: data.datasets[0].borderColor[i],
+                lineWidth: 2,
+                pointStyle: 'circle',
+                hidden: false,
+                index: i
+              }));
+            }
+            return [];
+          }
+        }
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        titleColor: 'var(--text-primary)',
+        bodyColor: 'var(--text-primary)',
+        borderColor: 'var(--border-primary)',
+        borderWidth: 1,
+        cornerRadius: 12,
+        displayColors: true,
+        padding: 12,
+        titleFont: {
+          size: 14,
+          weight: '600'
+        },
+        bodyFont: {
+          size: 13,
+          weight: '500'
+        },
+        callbacks: {
+          label: (context) => {
+            const label = context.label || '';
+            const value = context.parsed;
+            const percentage = data[context.dataIndex]?.percentage || 0;
+            
+            return [
+              label,
+              new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+              }).format(value),
+              `${percentage}%`
+            ];
+          }
+        }
+      }
+    },
+    interaction: {
+      intersect: false,
+      mode: 'index'
+    },
+    onHover: (event, activeElements) => {
+      if (activeElements.length > 0) {
+        setHoveredIndex(activeElements[0].index);
+      } else {
+        setHoveredIndex(null);
+      }
+    },
+    animation: {
+      animateRotate: true,
+      animateScale: true,
+      duration: 1000,
+      easing: 'easeInOutQuart'
+    }
+  };
+
+  // Calcular total para exibir
+  const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="expense-chart">
       <div className="chart-header">
-        <h3 className="chart-title">Gastos por Categoria</h3>
-        <p className="chart-subtitle">Últimos 30 dias</p>
+        <div className="header-content">
+          <h3 className="chart-title">Gastos por Categoria</h3>
+          <p className="chart-subtitle">Últimos 30 dias</p>
+        </div>
+        <div className="chart-summary">
+          <span className="total-amount">
+            {new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(total)}
+          </span>
+        </div>
       </div>
       
       <div className="chart-container">
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={120}
-              paddingAngle={2}
-              dataKey="value"
+        <div className="chart-wrapper">
+          <Pie
+            ref={chartRef}
+            data={chartData}
+            options={options}
+            className="pie-chart"
+          />
+        </div>
+        
+        {/* Legenda mobile */}
+        {isMobile && (
+          <div className="mobile-legend">
+            <div 
+              className="legend-scroll"
+              onTouchStart={(e) => e.preventDefault()}
+              onTouchMove={(e) => e.preventDefault()}
             >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              {data.map((item, index) => (
+                <div 
+                  key={index}
+                  className={`legend-item ${hoveredIndex === index ? 'active' : ''}`}
+                  onTouchStart={() => setHoveredIndex(index)}
+                  onTouchEnd={() => setHoveredIndex(null)}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  <div 
+                    className="legend-color"
+                    style={{ backgroundColor: COLORS[index] }}
+                  />
+                  <div className="legend-content">
+                    <span className="legend-label">{item.name}</span>
+                    <span className="legend-value">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(item.value)}
+                    </span>
+                    <span className="legend-percentage">{item.percentage}%</span>
+                  </div>
+                </div>
               ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              verticalAlign="bottom" 
-              height={36}
-              iconType="circle"
-              wrapperStyle={{ fontSize: '12px' }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
