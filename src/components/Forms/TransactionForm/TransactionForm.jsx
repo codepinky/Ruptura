@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, Tag, FileText } from 'lucide-react';
+import { X, Calendar, DollarSign, Tag, FileText, TrendingUp, TrendingDown } from 'lucide-react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import './TransactionForm.css';
 
@@ -106,14 +106,6 @@ const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
 
   const filteredCategories = categories.filter(cat => cat.type === formData.type);
 
-  // Debug: verificar se as categorias estão sendo carregadas
-  useEffect(() => {
-    if (isOpen) {
-      console.log('Categorias disponíveis:', categories);
-      console.log('Tipo selecionado:', formData.type);
-      console.log('Categorias filtradas:', filteredCategories);
-    }
-  }, [isOpen, categories, formData.type, filteredCategories]);
 
   if (!isOpen) return null;
 
@@ -121,9 +113,18 @@ const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="transaction-form" onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
-          <h2 className="form-title">
-            {transaction ? 'Editar Transação' : 'Nova Transação'}
-          </h2>
+          <div className="header-content">
+            <div className={`type-indicator ${formData.type}`}>
+              {formData.type === TRANSACTION_TYPES.INCOME ? (
+                <TrendingUp size={20} />
+              ) : (
+                <TrendingDown size={20} />
+              )}
+            </div>
+            <h2 className="form-title">
+              {transaction ? 'Editar Transação' : 'Nova Transação'}
+            </h2>
+          </div>
           <button className="close-button" onClick={onClose}>
             <X size={24} />
           </button>
@@ -165,21 +166,30 @@ const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
               {errors.amount && <span className="error-message">{errors.amount}</span>}
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
-                <Tag size={16} />
-                Tipo
-              </label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="form-select"
+          <div className="form-group">
+            <label className="form-label">
+              <Tag size={16} />
+              Tipo de Transação
+            </label>
+            <div className="type-selector">
+              <button
+                type="button"
+                className={`type-button income ${formData.type === TRANSACTION_TYPES.INCOME ? 'active' : ''}`}
+                onClick={() => handleChange({ target: { name: 'type', value: TRANSACTION_TYPES.INCOME } })}
               >
-                <option value={TRANSACTION_TYPES.INCOME}>Receita</option>
-                <option value={TRANSACTION_TYPES.EXPENSE}>Despesa</option>
-              </select>
+                <TrendingUp size={20} />
+                <span>Receita</span>
+              </button>
+              <button
+                type="button"
+                className={`type-button expense ${formData.type === TRANSACTION_TYPES.EXPENSE ? 'active' : ''}`}
+                onClick={() => handleChange({ target: { name: 'type', value: TRANSACTION_TYPES.EXPENSE } })}
+              >
+                <TrendingDown size={20} />
+                <span>Despesa</span>
+              </button>
             </div>
+          </div>
           </div>
 
           <div className="form-group">
@@ -187,22 +197,21 @@ const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
               <Tag size={16} />
               Categoria
             </label>
-            <select
-              name="categoryId"
-              value={formData.categoryId}
-              onChange={handleChange}
-              className={`form-select ${errors.categoryId ? 'error' : ''}`}
-            >
-              <option value="">Selecione uma categoria</option>
+            <div className="category-grid">
               {filteredCategories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
+                <button
+                  key={category.id}
+                  type="button"
+                  className={`category-button ${formData.categoryId === category.id ? 'active' : ''}`}
+                  onClick={() => handleChange({ target: { name: 'categoryId', value: category.id } })}
+                  style={{ '--category-color': category.color }}
+                >
+                  <div className="category-icon" style={{ backgroundColor: category.color }}>
+                    <Tag size={16} />
+                  </div>
+                  <span className="category-name">{category.name}</span>
+                </button>
               ))}
-            </select>
-            {/* Debug temporário */}
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-              Debug: {filteredCategories.length} categorias encontradas para tipo "{formData.type}"
             </div>
             {errors.categoryId && <span className="error-message">{errors.categoryId}</span>}
           </div>

@@ -1,20 +1,21 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Filter, Search, Calendar, Download } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Wallet, Filter } from 'lucide-react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
 import TransactionForm from '../../../components/Forms/TransactionForm/TransactionForm';
+import FloatingButton from '../../../components/FloatingButton/FloatingButton';
 import './Transactions.css';
 
 const Transactions = () => {
-  const { transactions, categories } = useFinancial();
+  const { transactions, categories, deleteTransaction } = useFinancial();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('date');
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
-  // Filtrar e ordenar transações
+
+  // Filtrar transações
   const filteredTransactions = useMemo(() => {
     let filtered = transactions;
 
@@ -26,35 +27,19 @@ const Transactions = () => {
       );
     }
 
-    // Filtro por tipo
-    if (filterType !== 'all') {
-      filtered = filtered.filter(t => t.type === filterType);
-    }
-
     // Filtro por categoria
     if (filterCategory !== 'all') {
       filtered = filtered.filter(t => t.categoryId === parseInt(filterCategory));
     }
 
-    // Ordenação
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'date':
-          return new Date(b.date) - new Date(a.date);
-        case 'amount':
-          return b.amount - a.amount;
-        case 'description':
-          return a.description.localeCompare(b.description);
-        default:
-          return 0;
-      }
-    });
+    // Ordenação por data (mais recente primeiro)
+    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return filtered.map(transaction => ({
       ...transaction,
       categoryName: categories.find(c => c.id === transaction.categoryId)?.name || 'Sem categoria'
     }));
-  }, [transactions, categories, searchQuery, filterType, filterCategory, sortBy]);
+  }, [transactions, categories, searchQuery, filterCategory]);
 
   const handleEditTransaction = (transaction) => {
     setEditingTransaction(transaction);
@@ -63,7 +48,6 @@ const Transactions = () => {
 
   const handleDeleteTransaction = (transactionId) => {
     if (window.confirm('Tem certeza que deseja excluir esta transação?')) {
-      // Implementar delete
       deleteTransaction(transactionId);
     }
   };
@@ -80,15 +64,39 @@ const Transactions = () => {
     }).format(amount);
   };
 
-  const totalIncome = filteredTransactions
-    .filter(t => t.type === TRANSACTION_TYPES.INCOME)
-    .reduce((sum, t) => sum + t.amount, 0);
+  // Dados para os cards de resumo (usando dados filtrados)
+  const summaryData = useMemo(() => {
+    const totalIncome = filteredTransactions
+      .filter(t => t.type === TRANSACTION_TYPES.INCOME)
+      .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalExpense = filteredTransactions
-    .filter(t => t.type === TRANSACTION_TYPES.EXPENSE)
-    .reduce((sum, t) => sum + t.amount, 0);
+    const totalExpense = filteredTransactions
+      .filter(t => t.type === TRANSACTION_TYPES.EXPENSE)
+      .reduce((sum, t) => sum + t.amount, 0);
 
-  const balance = totalIncome - totalExpense;
+    const balance = totalIncome - totalExpense;
+
+    return [
+      {
+        title: 'Receitas',
+        value: formatAmount(totalIncome),
+        icon: TrendingUp,
+        color: '#10B981'
+      },
+      {
+        title: 'Despesas',
+        value: formatAmount(totalExpense),
+        icon: TrendingDown,
+        color: '#EF4444'
+      },
+      {
+        title: 'Saldo Atual',
+        value: formatAmount(balance),
+        icon: Wallet,
+        color: balance >= 0 ? '#3B82F6' : '#EF4444'
+      }
+    ];
+  }, [filteredTransactions]);
 
   return (
     <div className="transactions-page">
@@ -97,102 +105,73 @@ const Transactions = () => {
           <h1 className="page-title">Transações</h1>
           <p className="page-subtitle">Gerencie suas receitas e despesas</p>
         </div>
-        <button 
-          className="add-button"
-          onClick={() => setIsFormOpen(true)}
-        >
-          <Plus size={20} />
-          Nova Transação
-        </button>
       </div>
 
-      {/* Filtros e Busca */}
+      {/* Filtros Expansíveis */}
       <div className="filters-section">
-        <div className="search-container">
-          <Search size={20} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Buscar transações..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
-        </div>
+        <button 
+          className="filter-toggle-button"
+          onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+        >
+          <Filter size={20} />
+          <span>Filtros</span>
+          <span className={`toggle-arrow ${isFiltersExpanded ? 'expanded' : ''}`}>▼</span>
+        </button>
 
-        <div className="filters-row">
-          <div className="filter-group">
-            <label className="filter-label">Tipo</label>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Todos</option>
-              <option value={TRANSACTION_TYPES.INCOME}>Receitas</option>
-              <option value={TRANSACTION_TYPES.EXPENSE}>Despesas</option>
-            </select>
+        {isFiltersExpanded && (
+          <div className="filters-content">
+            <div className="search-container">
+              <Search size={20} className="search-icon" />
+              <input
+                type="text"
+                placeholder="Buscar transações..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+            </div>
+
+            <div className="category-filter">
+              <label className="filter-label">Categoria</label>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">Todas as categorias</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-
-          <div className="filter-group">
-            <label className="filter-label">Categoria</label>
-            <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Todas</option>
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label className="filter-label">Ordenar por</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="filter-select"
-            >
-              <option value="date">Data</option>
-              <option value="amount">Valor</option>
-              <option value="description">Descrição</option>
-            </select>
-          </div>
-
-          <button className="export-button">
-            <Download size={16} />
-            Exportar
-          </button>
-        </div>
+        )}
       </div>
 
-      {/* Resumo */}
-      <div className="summary-cards">
-        <div className="summary-card income">
-          <h3>Total de Receitas</h3>
-          <p className="amount">{formatAmount(totalIncome)}</p>
-        </div>
-        <div className="summary-card expense">
-          <h3>Total de Despesas</h3>
-          <p className="amount">{formatAmount(totalExpense)}</p>
-        </div>
-        <div className="summary-card balance">
-          <h3>Saldo</h3>
-          <p className={`amount ${balance >= 0 ? 'positive' : 'negative'}`}>
-            {formatAmount(balance)}
-          </p>
-        </div>
+      {/* Card Unificado Mobile */}
+      <div className="summary-unified-mobile">
+        {summaryData.map((item, index) => (
+          <div key={index} className="unified-item">
+            <div className="unified-icon" style={{ backgroundColor: item.color }}>
+              {React.createElement(item.icon, { size: 20 })}
+            </div>
+            <div className="unified-content">
+              <h3 className="unified-title">{item.title}</h3>
+              <p className="unified-value">{item.value}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Lista de Transações */}
       <div className="transactions-section">
         <div className="section-header">
-          <h2 className="section-title">
-            Transações ({filteredTransactions.length})
-          </h2>
+          <div className="transaction-count">
+            <span className="count-number">{filteredTransactions.length}</span>
+            <span className="count-label">transações</span>
+          </div>
         </div>
 
         <div className="transactions-list">
@@ -210,17 +189,13 @@ const Transactions = () => {
               <div className="empty-icon">📊</div>
               <h3>Nenhuma transação encontrada</h3>
               <p>Comece adicionando sua primeira transação</p>
-              <button 
-                className="add-first-button"
-                onClick={() => setIsFormOpen(true)}
-              >
-                <Plus size={20} />
-                Adicionar Transação
-              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* FloatingButton */}
+      <FloatingButton onClick={() => setIsFormOpen(true)} />
 
       {/* Modal do Formulário */}
       <TransactionForm
