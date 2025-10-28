@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useMemo, useCallback } from 'react';
 
 // Tipos de transação
 export const TRANSACTION_TYPES = {
@@ -316,9 +316,10 @@ function financialReducer(state, action) {
       return { ...state, error: action.payload, loading: false };
     
     case ACTIONS.ADD_TRANSACTION:
+      const newTransactionId = Date.now() + Math.random();
       return {
         ...state,
-        transactions: [...state.transactions, { ...action.payload, id: Date.now() }]
+        transactions: [...state.transactions, { ...action.payload, id: newTransactionId }]
       };
     
     case ACTIONS.UPDATE_TRANSACTION:
@@ -444,95 +445,101 @@ const FinancialContext = createContext();
 // Provider
 export function FinancialProvider({ children }) {
   const [state, dispatch] = useReducer(financialReducer, initialState);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Carregar dados do localStorage
+  // Carregar dados do localStorage apenas uma vez na montagem
   useEffect(() => {
-    const savedData = localStorage.getItem('financial-data');
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
-        dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
-      } catch (error) {
-        // Erro ao carregar dados do localStorage - usar dados padrão
+    if (!isInitialized) {
+      const savedData = localStorage.getItem('financial-data');
+      if (savedData) {
+        try {
+          const data = JSON.parse(savedData);
+          dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
+        } catch (error) {
+          console.error('Erro ao carregar dados do localStorage:', error);
+        }
       }
+      setIsInitialized(true);
     }
+  }, [isInitialized]);
+
+  // Salvar dados no localStorage apenas após inicialização
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem('financial-data', JSON.stringify({
+        transactions: state.transactions,
+        categories: state.categories,
+        budgets: state.budgets,
+        goals: state.goals,
+        savings: state.savings
+      }));
+    }
+  }, [state.transactions, state.categories, state.budgets, state.goals, state.savings, isInitialized]);
+
+  // Actions - Memoizadas para evitar re-renderizações desnecessárias
+  const addTransaction = useCallback((transaction) => {
+    dispatch({ type: ACTIONS.ADD_TRANSACTION, payload: transaction });
   }, []);
 
-  // Salvar dados no localStorage
-  useEffect(() => {
-    localStorage.setItem('financial-data', JSON.stringify({
-      transactions: state.transactions,
-      categories: state.categories,
-      budgets: state.budgets,
-      goals: state.goals,
-      savings: state.savings
-    }));
-  }, [state.transactions, state.categories, state.budgets, state.goals, state.savings]);
-
-  // Actions
-  const addTransaction = (transaction) => {
-    dispatch({ type: ACTIONS.ADD_TRANSACTION, payload: transaction });
-  };
-
-  const updateTransaction = (transaction) => {
+  const updateTransaction = useCallback((transaction) => {
     dispatch({ type: ACTIONS.UPDATE_TRANSACTION, payload: transaction });
-  };
+  }, []);
 
-  const deleteTransaction = (id) => {
+  const deleteTransaction = useCallback((id) => {
     dispatch({ type: ACTIONS.DELETE_TRANSACTION, payload: id });
-  };
+  }, []);
 
-  const addCategory = (category) => {
+  const addCategory = useCallback((category) => {
     dispatch({ type: ACTIONS.ADD_CATEGORY, payload: category });
-  };
+  }, []);
 
-  const updateCategory = (category) => {
+  const updateCategory = useCallback((category) => {
     dispatch({ type: ACTIONS.UPDATE_CATEGORY, payload: category });
-  };
+  }, []);
 
-  const deleteCategory = (id) => {
+  const deleteCategory = useCallback((id) => {
     dispatch({ type: ACTIONS.DELETE_CATEGORY, payload: id });
-  };
+  }, []);
 
-  const addBudget = (budget) => {
+  const addBudget = useCallback((budget) => {
     dispatch({ type: ACTIONS.ADD_BUDGET, payload: budget });
-  };
+  }, []);
 
-  const updateBudget = (budget) => {
+  const updateBudget = useCallback((budget) => {
     dispatch({ type: ACTIONS.UPDATE_BUDGET, payload: budget });
-  };
+  }, []);
 
-  const deleteBudget = (id) => {
+  const deleteBudget = useCallback((id) => {
     dispatch({ type: ACTIONS.DELETE_BUDGET, payload: id });
-  };
+  }, []);
 
-  const addGoal = (goal) => {
+  const addGoal = useCallback((goal) => {
     dispatch({ type: ACTIONS.ADD_GOAL, payload: goal });
-  };
+  }, []);
 
-  const updateGoal = (goal) => {
+  const updateGoal = useCallback((goal) => {
     dispatch({ type: ACTIONS.UPDATE_GOAL, payload: goal });
-  };
+  }, []);
 
-  const deleteGoal = (id) => {
+  const deleteGoal = useCallback((id) => {
     dispatch({ type: ACTIONS.DELETE_GOAL, payload: id });
-  };
+  }, []);
 
-  const addSaving = (saving) => {
+  const addSaving = useCallback((saving) => {
     dispatch({ type: ACTIONS.ADD_SAVING, payload: saving });
-  };
+  }, []);
 
-  const updateSaving = (saving) => {
+  const updateSaving = useCallback((saving) => {
     dispatch({ type: ACTIONS.UPDATE_SAVING, payload: saving });
-  };
+  }, []);
 
-  const deleteSaving = (id) => {
+  const deleteSaving = useCallback((id) => {
     dispatch({ type: ACTIONS.DELETE_SAVING, payload: id });
-  };
+  }, []);
 
-  const updateGoalProgress = (goalId, amount) => {
+  const updateGoalProgress = useCallback((goalId, amount) => {
     dispatch({ type: ACTIONS.UPDATE_GOAL_PROGRESS, payload: { goalId, amount } });
-  };
+  }, []);
 
   // Funções utilitárias
   const getTransactionsByMonth = (year, month) => {
@@ -703,7 +710,7 @@ export function FinancialProvider({ children }) {
     return trends;
   };
 
-  const value = {
+  const value = useMemo(() => ({
     ...state,
     addTransaction,
     updateTransaction,
@@ -734,7 +741,25 @@ export function FinancialProvider({ children }) {
     getYearlyProjection,
     getCategoryTrends,
     TRANSACTION_TYPES
-  };
+  }), [
+    state,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    addBudget,
+    updateBudget,
+    deleteBudget,
+    addGoal,
+    updateGoal,
+    deleteGoal,
+    addSaving,
+    updateSaving,
+    deleteSaving,
+    updateGoalProgress
+  ]);
 
   return (
     <FinancialContext.Provider value={value}>

@@ -89,15 +89,19 @@ const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
     }
 
     const transactionData = {
-      ...formData,
+      description: formData.description,
       amount: parseFloat(formData.amount),
+      type: formData.type,
       categoryId: parseInt(formData.categoryId),
-      id: transaction?.id || Date.now()
+      date: formData.date,
+      notes: formData.notes || ''
     };
 
     if (transaction) {
-      updateTransaction(transactionData);
+      // Editar transação existente
+      updateTransaction({ ...transactionData, id: transaction.id });
     } else {
+      // Adicionar nova transação (o ID será gerado pelo reducer)
       addTransaction(transactionData);
     }
 

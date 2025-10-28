@@ -95,11 +95,15 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
     }
 
     const transactionData = {
-      ...formData,
+      description: formData.description,
       amount: parseFloat(formData.amount),
-      categoryId: parseInt(formData.categoryId)
+      type: formData.type,
+      categoryId: parseInt(formData.categoryId),
+      date: formData.date,
+      notes: formData.notes || ''
     };
 
+    // Adicionar nova transação (o ID será gerado pelo reducer)
     addTransaction(transactionData);
     onClose();
   };
