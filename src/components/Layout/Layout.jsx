@@ -13,10 +13,14 @@ const Layout = ({ children }) => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
+
   return (
     <SearchProvider>
       <div className="layout">
-        <Sidebar sidebarOpen={sidebarOpen} />
+        <Sidebar sidebarOpen={sidebarOpen} onNavigate={closeSidebar} />
         <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={toggleSidebar} />
         
         <div className="main-content">

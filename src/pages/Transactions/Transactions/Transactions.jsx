@@ -102,7 +102,7 @@ const Transactions = () => {
     <div className="transactions-page">
       <div className="page-header">
         <div className="header-content">
-          <h1 className="page-title">Transações</h1>
+          <h1 className="dashboard-title">Transações</h1> #Arrumar isso depois!
           <p className="page-subtitle">Gerencie suas receitas e despesas</p>
         </div>
       </div>

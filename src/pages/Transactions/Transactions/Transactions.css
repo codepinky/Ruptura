@@ -1,30 +1,60 @@
 .transactions-page {
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+  overflow: visible;
 }
 
+/* ===== CABEÇALHO DA PÁGINA ===== */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 2rem;
+  position: relative;
+  z-index: 10;
 }
 
 .header-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 11;
 }
 
 .page-title {
+  display: block;
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
+  margin: 0;
+  letter-spacing: -0.02em;
+  position: relative;
+  padding-bottom: 0.75rem;
+  z-index: 12;
+  visibility: visible;
+  opacity: 1;
+}
+
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  border-radius: 2px;
 }
 
 .page-subtitle {
   font-size: 1rem;
   color: var(--text-secondary);
   margin: 0;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .add-button {
@@ -53,6 +83,8 @@
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-primary);
   overflow: hidden;
+  position: relative;
+  z-index: 5;
 }
 
 .filter-toggle-button {
@@ -158,6 +190,9 @@
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-primary);
   margin-bottom: 2rem;
+  display: none; /* Ocultar por padrão (desktop) */
+  position: relative;
+  z-index: 1;
 }
 
 .summary-unified-mobile .unified-item {
@@ -265,13 +300,20 @@
 /* Responsividade */
 @media (max-width: 768px) {
   .page-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+    margin-bottom: 1.5rem;
   }
   
   .page-title {
     font-size: 1.5rem;
+  }
+  
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .summary-unified-mobile {
+    display: block;
+    margin-top: 0;
   }
   
   .category-filter {
@@ -288,6 +330,32 @@
   
   .count-label {
     font-size: 0.875rem;
+  }
+}
+
+/* Tablets */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .transactions-section {
+    padding: 1.25rem;
+  }
+}
+
+/* Dispositivos muito pequenos */
+@media (max-width: 480px) {
+  .page-header {
+    margin-bottom: 1rem;
+  }
+  
+  .page-title {
+    font-size: 1.25rem;
+  }
+  
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .transactions-section {
+    padding: 0.75rem;
   }
 }
 

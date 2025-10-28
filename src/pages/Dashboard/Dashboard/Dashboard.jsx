@@ -1,12 +1,11 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import SummaryCard from '../../../components/Cards/SummaryCard/SummaryCard';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
 import ExpenseChart from '../../../components/Charts/ExpenseChart/ExpenseChart';
-import BalanceChart from '../../../components/Charts/BalanceChart/BalanceChart';
 import FloatingButton from '../../../components/FloatingButton/FloatingButton';
 import SimpleTransactionForm from '../../../components/SimpleTransactionForm/SimpleTransactionForm';
-import { DollarSign, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -20,9 +19,6 @@ const Dashboard = () => {
   } = useFinancial();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const carouselRef = useRef(null);
-
   const handleOpenForm = () => {
     setIsFormOpen(true);
   };
@@ -31,21 +27,14 @@ const Dashboard = () => {
     setIsFormOpen(false);
   };
 
-  // Função para atualizar indicadores do carrossel
-  useEffect(() => {
-    const carousel = carouselRef.current;
-    if (!carousel) return;
+  const handleEditTransaction = (transaction) => {
+    // TODO: Implementar edição de transação
+    console.log('Editar transação:', transaction);
+  };
 
-    const handleScroll = () => {
-      const scrollLeft = carousel.scrollLeft;
-      const slideWidth = carousel.clientWidth;
-      const newActiveSlide = Math.round(scrollLeft / slideWidth);
-      setActiveSlide(newActiveSlide);
-    };
-
-    carousel.addEventListener('scroll', handleScroll);
-    return () => carousel.removeEventListener('scroll', handleScroll);
-  }, []);
+  const handleDeleteTransaction = (id) => {
+    deleteTransaction(id);
+  };
 
   // Dados para os cards de resumo
   const summaryData = useMemo(() => {
@@ -146,34 +135,6 @@ const Dashboard = () => {
       .slice(0, 8);
   }, [transactions, categories]);
 
-  // Dados para o gráfico de evolução do saldo
-  const balanceData = useMemo(() => {
-    const last30Days = [];
-    const today = new Date();
-    
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      
-      const dayTransactions = transactions.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate.toDateString() === date.toDateString();
-      });
-      
-      const dayBalance = getBalance(dayTransactions);
-      last30Days.push({
-        date: date.toISOString(),
-        balance: dayBalance
-      });
-    }
-    
-    // Para mobile, mostrar apenas dias alternados (15 pontos ao invés de 30)
-    if (window.innerWidth <= 768) {
-      return last30Days.filter((_, index) => index % 2 === 0);
-    }
-    
-    return last30Days;
-  }, [transactions, getBalance]);
 
   // Transações recentes
   const recentTransactions = useMemo(() => {
@@ -190,8 +151,7 @@ const Dashboard = () => {
     <div className="dashboard">
       <div className="dashboard-header">
         <div className="header-content">
-          <h1 className="dashboard-title">Dashboard</h1>
-          <p className="dashboard-subtitle">Visão geral do Ruptura</p>
+          <h1 className="dashboard-title">Visão Geral</h1>
         </div>
       </div>
 
@@ -227,26 +187,9 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Gráficos Desktop */}
+      {/* Gráfico de Pizza */}
       <div className="charts-grid">
         <ExpenseChart data={expenseData} />
-        <BalanceChart data={balanceData} />
-      </div>
-
-      {/* Carrossel de Gráficos Mobile */}
-      <div className="charts-carousel-mobile">
-        <div className="carousel-container" ref={carouselRef}>
-          <div className="carousel-item">
-            <ExpenseChart data={expenseData} />
-          </div>
-          <div className="carousel-item">
-            <BalanceChart data={balanceData} />
-          </div>
-        </div>
-        <div className="carousel-indicators">
-          <span className={`dot ${activeSlide === 0 ? 'active' : ''}`}></span>
-          <span className={`dot ${activeSlide === 1 ? 'active' : ''}`}></span>
-        </div>
       </div>
 
       {/* Transações Recentes */}

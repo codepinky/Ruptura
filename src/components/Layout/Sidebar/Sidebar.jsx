@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import './Sidebar.css';
 
-const Sidebar = ({ sidebarOpen }) => {
+const Sidebar = ({ sidebarOpen, onNavigate }) => {
   const location = useLocation();
 
   const menuItems = [
@@ -27,6 +27,13 @@ const Sidebar = ({ sidebarOpen }) => {
     { path: '/calendar', icon: Calendar, label: 'Calendário' },
     { path: '/settings', icon: Settings, label: 'Configurações' }
   ];
+
+  const handleNavigate = () => {
+    // Fechar o sidebar no mobile quando um link for clicado
+    if (window.innerWidth <= 768 && onNavigate) {
+      onNavigate();
+    }
+  };
 
   return (
     <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
@@ -49,6 +56,7 @@ const Sidebar = ({ sidebarOpen }) => {
                 <Link 
                   to={item.path} 
                   className={`nav-link ${isActive ? 'active' : ''}`}
+                  onClick={handleNavigate}
                 >
                   <Icon size={20} className="nav-icon" />
                   <span className="nav-label">{item.label}</span>

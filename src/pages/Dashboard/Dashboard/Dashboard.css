@@ -5,28 +5,26 @@
 
 .dashboard-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 2rem;
   position: relative;
 }
 
 .header-content {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
-
 
 .dashboard-title {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.dashboard-subtitle {
-  font-size: 1rem;
-  color: var(--text-secondary);
   margin: 0;
+  text-align: center;
+  letter-spacing: -0.02em;
 }
 
 .summary-grid {
@@ -37,17 +35,14 @@
 }
 
 .charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  justify-content: center;
   margin-bottom: 2rem;
 }
 
-/* Ocultar grid de gráficos no mobile */
-@media (max-width: 768px) {
-  .charts-grid {
-    display: none !important;
-  }
+.charts-grid > * {
+  width: 100%;
+  max-width: 500px;
 }
 
 .recent-transactions {
@@ -120,52 +115,6 @@
   transform: translateY(-1px);
 }
 
-/* Carrossel de Gráficos Mobile */
-.charts-carousel-mobile {
-  display: none; /* Ocultar por padrão (desktop) */
-  position: relative;
-  margin-bottom: 2rem;
-  margin-top: 1.5rem; /* Espaçamento do conteúdo acima */
-}
-
-.carousel-container {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-  gap: 0;
-}
-
-.carousel-container::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
-}
-
-.carousel-item {
-  flex: 0 0 100%;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-}
-
-.carousel-indicators {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--border-primary);
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.dot.active {
-  background-color: var(--color-primary);
-}
 
 /* Card Unificado Mobile */
 .summary-unified-mobile {
@@ -226,7 +175,6 @@
 @media (max-width: 768px) {
   .dashboard-header {
     flex-direction: column;
-    align-items: stretch;
   }
   
   .dashboard-title {
@@ -239,10 +187,6 @@
   
   .summary-unified-mobile {
     display: block; /* Mostrar card unificado no mobile */
-  }
-  
-  .charts-carousel-mobile {
-    display: block; /* Mostrar carrossel no mobile */
   }
   
   .recent-transactions {
