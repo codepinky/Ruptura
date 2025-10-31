@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, DollarSign, Tag, FileText, TrendingUp, TrendingDown } from 'lucide-react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
+import { useNotification } from '../../../context/NotificationContext';
 import './TransactionForm.css';
 
 const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
-  const { categories, addTransaction, updateTransaction } = useFinancial();
+  const { categories, addTransaction, updateTransaction, transactions } = useFinancial();
+  const { success, error } = useNotification();
   
   const [formData, setFormData] = useState({
     description: transaction?.description || '',
@@ -88,24 +90,31 @@ const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
       return;
     }
 
-    const transactionData = {
-      description: formData.description,
-      amount: parseFloat(formData.amount),
-      type: formData.type,
-      categoryId: parseInt(formData.categoryId),
-      date: formData.date,
-      notes: formData.notes || ''
-    };
+    try {
+      const transactionData = {
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        type: formData.type,
+        categoryId: parseInt(formData.categoryId),
+        date: formData.date,
+        notes: formData.notes || ''
+      };
 
-    if (transaction) {
-      // Editar transação existente
-      updateTransaction({ ...transactionData, id: transaction.id });
-    } else {
-      // Adicionar nova transação (o ID será gerado pelo reducer)
-      addTransaction(transactionData);
+      if (transaction) {
+        // Editar transação existente
+        updateTransaction({ ...transactionData, id: transaction.id });
+        success('Transação atualizada com sucesso!');
+      } else {
+        // Adicionar nova transação (o ID será gerado pelo reducer)
+        addTransaction(transactionData);
+        success('Transação adicionada com sucesso!');
+      }
+
+      onClose();
+    } catch (err) {
+      error('Erro ao salvar transação. Tente novamente.');
+      console.error('Erro ao salvar transação:', err);
     }
-
-    onClose();
   };
 
   const filteredCategories = categories.filter(cat => cat.type === formData.type);

@@ -1,24 +1,29 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import SummaryCard from '../../../components/Cards/SummaryCard/SummaryCard';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
 import ExpenseChart from '../../../components/Charts/ExpenseChart/ExpenseChart';
 import FloatingButton from '../../../components/FloatingButton/FloatingButton';
 import SimpleTransactionForm from '../../../components/SimpleTransactionForm/SimpleTransactionForm';
-import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Calendar, ChevronDown } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { 
     transactions, 
     categories, 
     getTotalIncome, 
     getTotalExpense, 
     getBalance,
-    deleteTransaction
+    deleteTransaction,
+    getMonthlyProjection,
+    getYearlyProjection
   } = useFinancial();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
   const handleOpenForm = () => {
     setIsFormOpen(true);
   };
@@ -29,41 +34,151 @@ const Dashboard = () => {
 
   const handleEditTransaction = (transaction) => {
     // TODO: Implementar edição de transação
-    console.log('Editar transação:', transaction);
   };
 
   const handleDeleteTransaction = (id) => {
     deleteTransaction(id);
   };
 
-  // Dados para os cards de resumo
+  // Função para filtrar transações por período
+  const getPeriodTransactions = (period) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    switch (period) {
+      case 'today': {
+        const todayStr = today.toISOString().split('T')[0];
+        return transactions.filter(t => t.date === todayStr);
+      }
+      case 'week': {
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return transactions.filter(t => {
+          const date = new Date(t.date);
+          return date >= weekAgo && date <= today;
+        });
+      }
+      case 'month': {
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        return transactions.filter(t => {
+          const date = new Date(t.date);
+          return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        });
+      }
+      case '30days': {
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return transactions.filter(t => {
+          const date = new Date(t.date);
+          return date >= thirtyDaysAgo && date <= today;
+        });
+      }
+      case '3months': {
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        return transactions.filter(t => {
+          const date = new Date(t.date);
+          return date >= threeMonthsAgo && date <= today;
+        });
+      }
+      case 'year': {
+        const currentYear = today.getFullYear();
+        return transactions.filter(t => {
+          const date = new Date(t.date);
+          return date.getFullYear() === currentYear;
+        });
+      }
+      default:
+        return transactions;
+    }
+  };
+
+  // Transações filtradas pelo período selecionado
+  const periodTransactions = useMemo(() => {
+    return getPeriodTransactions(selectedPeriod);
+  }, [transactions, selectedPeriod]);
+
+  // Dados para os cards de resumo baseados no período selecionado
   const summaryData = useMemo(() => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    
-    const currentMonthTransactions = transactions.filter(t => {
-      const date = new Date(t.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    });
+    const currentIncome = getTotalIncome(periodTransactions);
+    const currentExpense = getTotalExpense(periodTransactions);
+    const currentBalance = getBalance(periodTransactions);
 
-    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-    const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-    
-    const previousMonthTransactions = transactions.filter(t => {
-      const date = new Date(t.date);
-      return date.getMonth() === previousMonth && date.getFullYear() === previousYear;
-    });
+    // Calcular período anterior para comparação
+    let previousPeriodTransactions = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    const currentIncome = getTotalIncome(currentMonthTransactions);
-    const previousIncome = getTotalIncome(previousMonthTransactions);
+    switch (selectedPeriod) {
+      case 'today': {
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        previousPeriodTransactions = transactions.filter(t => t.date === yesterdayStr);
+        break;
+      }
+      case 'week': {
+        const twoWeeksAgo = new Date(today);
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        previousPeriodTransactions = transactions.filter(t => {
+          const date = new Date(t.date);
+          return date >= twoWeeksAgo && date < weekAgo;
+        });
+        break;
+      }
+      case 'month': {
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        previousPeriodTransactions = transactions.filter(t => {
+          const date = new Date(t.date);
+          return date.getMonth() === previousMonth && date.getFullYear() === previousYear;
+        });
+        break;
+      }
+      case '30days': {
+        const sixtyDaysAgo = new Date(today);
+        sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        previousPeriodTransactions = transactions.filter(t => {
+          const date = new Date(t.date);
+          return date >= sixtyDaysAgo && date < thirtyDaysAgo;
+        });
+        break;
+      }
+      case '3months': {
+        const sixMonthsAgo = new Date(today);
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        previousPeriodTransactions = transactions.filter(t => {
+          const date = new Date(t.date);
+          return date >= sixMonthsAgo && date < threeMonthsAgo;
+        });
+        break;
+      }
+      case 'year': {
+        const previousYear = today.getFullYear() - 1;
+        previousPeriodTransactions = transactions.filter(t => {
+          const date = new Date(t.date);
+          return date.getFullYear() === previousYear;
+        });
+        break;
+      }
+    }
+
+    const previousIncome = getTotalIncome(previousPeriodTransactions);
     const incomeChange = previousIncome > 0 ? ((currentIncome - previousIncome) / previousIncome) * 100 : 0;
 
-    const currentExpense = getTotalExpense(currentMonthTransactions);
-    const previousExpense = getTotalExpense(previousMonthTransactions);
+    const previousExpense = getTotalExpense(previousPeriodTransactions);
     const expenseChange = previousExpense > 0 ? ((currentExpense - previousExpense) / previousExpense) * 100 : 0;
 
-    const currentBalance = getBalance(currentMonthTransactions);
-    const previousBalance = getBalance(previousMonthTransactions);
+    const previousBalance = getBalance(previousPeriodTransactions);
     const balanceChange = previousBalance !== 0 ? ((currentBalance - previousBalance) / Math.abs(previousBalance)) * 100 : 0;
 
     return [
@@ -98,22 +213,14 @@ const Dashboard = () => {
         color: currentBalance >= 0 ? '#3B82F6' : '#EF4444'
       }
     ];
-  }, [transactions, getTotalIncome, getTotalExpense, getBalance]);
+  }, [periodTransactions, selectedPeriod, transactions, getTotalIncome, getTotalExpense, getBalance]);
 
-  // Dados para o gráfico de gastos por categoria
+  // Dados para o gráfico de gastos por categoria (filtrado pelo período)
   const expenseData = useMemo(() => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    
-    const currentMonthExpenses = transactions.filter(t => {
-      const date = new Date(t.date);
-      return date.getMonth() === currentMonth && 
-             date.getFullYear() === currentYear && 
-             t.type === TRANSACTION_TYPES.EXPENSE;
-    });
+    const periodExpenses = periodTransactions.filter(t => t.type === TRANSACTION_TYPES.EXPENSE);
 
     const categoryTotals = {};
-    currentMonthExpenses.forEach(transaction => {
+    periodExpenses.forEach(transaction => {
       const category = categories.find(c => c.id === transaction.categoryId);
       if (category) {
         if (!categoryTotals[category.name]) {
@@ -133,30 +240,125 @@ const Dashboard = () => {
       }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 8);
-  }, [transactions, categories]);
+  }, [periodTransactions, categories]);
+
+  // Dados de hoje para widget
+  const todayData = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    const todayTransactions = transactions.filter(t => t.date === todayStr);
+    
+    return {
+      income: getTotalIncome(todayTransactions),
+      expense: getTotalExpense(todayTransactions),
+      balance: getBalance(todayTransactions),
+      count: todayTransactions.length
+    };
+  }, [transactions, getTotalIncome, getTotalExpense, getBalance]);
+
+  // Dados de projeções
+  const projectionData = useMemo(() => {
+    if (selectedPeriod === 'month' || selectedPeriod === 'year') {
+      const projection = selectedPeriod === 'month' 
+        ? getMonthlyProjection(1)
+        : getYearlyProjection();
+      
+      const today = new Date();
+      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      const daysPassed = today.getDate();
+      const monthProgress = (daysPassed / daysInMonth) * 100;
+
+      return {
+        ...projection,
+        monthProgress: selectedPeriod === 'month' ? monthProgress : null
+      };
+    }
+    return null;
+  }, [selectedPeriod, getMonthlyProjection, getYearlyProjection]);
 
 
-  // Transações recentes
+  // Transações recentes (filtradas pelo período)
   const recentTransactions = useMemo(() => {
-    return transactions
+    return periodTransactions
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 5)
       .map(transaction => ({
         ...transaction,
         categoryName: categories.find(c => c.id === transaction.categoryId)?.name || 'Sem categoria'
       }));
-  }, [transactions, categories]);
+  }, [periodTransactions, categories]);
 
   return (
     <div className="dashboard">
       <div className="dashboard-header">
         <div className="header-content">
           <h1 className="dashboard-title">Visão Geral</h1>
+          <p className="page-subtitle">
+            Acompanhe suas finanças em tempo real e tome decisões inteligentes
+          </p>
+        </div>
+        <div className="period-selector-wrapper">
+          <div className="period-selector">
+            <Calendar size={18} />
+            <select 
+              value={selectedPeriod} 
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="period-select"
+            >
+              <option value="today">Hoje</option>
+              <option value="week">Esta Semana</option>
+              <option value="month">Este Mês</option>
+              <option value="30days">Últimos 30 dias</option>
+              <option value="3months">Últimos 3 meses</option>
+              <option value="year">Este Ano</option>
+            </select>
+            <ChevronDown size={16} className="select-chevron" />
+          </div>
         </div>
       </div>
 
       {/* Botão Flutuante */}
       <FloatingButton onClick={handleOpenForm} />
+
+      {/* Widget de Resumo do Dia */}
+      {(selectedPeriod === 'today' || selectedPeriod === 'week' || selectedPeriod === 'month') && todayData.count > 0 && (
+        <div className="today-summary-widget">
+          <div className="today-widget-header">
+            <h3 className="today-widget-title">Resumo de Hoje</h3>
+            <span className="today-widget-badge">{todayData.count} transação{todayData.count !== 1 ? 'ões' : ''}</span>
+          </div>
+          <div className="today-widget-content">
+            <div className="today-widget-item income">
+              <span className="today-widget-label">Receitas</span>
+              <span className="today-widget-value">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(todayData.income)}
+              </span>
+            </div>
+            <div className="today-widget-item expense">
+              <span className="today-widget-label">Despesas</span>
+              <span className="today-widget-value">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(todayData.expense)}
+              </span>
+            </div>
+            <div className="today-widget-item balance">
+              <span className="today-widget-label">Saldo</span>
+              <span className={`today-widget-value ${todayData.balance >= 0 ? 'positive' : 'negative'}`}>
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(todayData.balance)}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cards de Resumo */}
       <div className="summary-grid">
@@ -171,6 +373,54 @@ const Dashboard = () => {
           />
         ))}
       </div>
+
+      {/* Card de Projeção */}
+      {projectionData && selectedPeriod === 'month' && (
+        <div className="projection-card">
+          <div className="projection-header">
+            <h3 className="projection-title">Projeção do Mês</h3>
+            <div className="projection-progress">
+              <span className="progress-label">Progresso do mês</span>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${projectionData.monthProgress}%` }}
+                />
+              </div>
+              <span className="progress-value">{Math.round(projectionData.monthProgress)}%</span>
+            </div>
+          </div>
+          <div className="projection-content">
+            <div className="projection-item">
+              <span className="projection-label">Receitas Projetadas</span>
+              <span className="projection-value income">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(projectionData.projectedIncome)}
+              </span>
+            </div>
+            <div className="projection-item">
+              <span className="projection-label">Despesas Projetadas</span>
+              <span className="projection-value expense">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(projectionData.projectedExpense)}
+              </span>
+            </div>
+            <div className="projection-item">
+              <span className="projection-label">Saldo Projetado</span>
+              <span className={`projection-value ${projectionData.projectedBalance >= 0 ? 'positive' : 'negative'}`}>
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(projectionData.projectedBalance)}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Card Unificado Mobile */}
       <div className="summary-unified-mobile">
@@ -196,7 +446,12 @@ const Dashboard = () => {
       <div className="recent-transactions">
         <div className="section-header">
           <h2 className="section-title">Transações Recentes</h2>
-          <button className="view-all-button">Ver todas</button>
+          <button 
+            className="view-all-button"
+            onClick={() => navigate('/transactions')}
+          >
+            Ver todas
+          </button>
         </div>
         
         <div className="transactions-list">

@@ -34,14 +34,14 @@ const TransactionDetailCard = ({ transaction, category }) => {
 
   return (
     <div className="transaction-detail-card">
-      <div className="transaction-header">
-        <div className="transaction-icon" style={{ backgroundColor: `${iconColor}20` }}>
+      <div className="transaction-detail-header">
+        <div className="transaction-detail-icon" style={{ backgroundColor: `${iconColor}20` }}>
           <Icon size={20} style={{ color: iconColor }} />
         </div>
         
-        <div className="transaction-main-info">
-          <h3 className="transaction-title">{transaction.description}</h3>
-          <div className="transaction-tags">
+        <div className="transaction-detail-main-info">
+          <h3 className="transaction-detail-title">{transaction.description}</h3>
+          <div className="transaction-detail-tags">
             <span 
               className="category-tag" 
               style={{ 
@@ -58,12 +58,12 @@ const TransactionDetailCard = ({ transaction, category }) => {
           </div>
         </div>
         
-        <div className="transaction-amount" style={{ color: amountColor }}>
+        <div className="transaction-detail-amount" style={{ color: amountColor }}>
           {isIncome ? '+' : '-'}{formatAmount(transaction.amount)}
         </div>
       </div>
       
-      <div className="transaction-details">
+      <div className="transaction-detail-details">
         <div className="detail-item">
           <Calendar size={14} />
           <span>{formatDate(transaction.date)} às {formatTime(transaction.date)}</span>

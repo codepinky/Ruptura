@@ -13,14 +13,14 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.transaction-header {
+.transaction-detail-header {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
-.transaction-icon {
+.transaction-detail-icon {
   width: 40px;
   height: 40px;
   border-radius: 10px;
@@ -30,12 +30,12 @@
   flex-shrink: 0;
 }
 
-.transaction-main-info {
+.transaction-detail-main-info {
   flex: 1;
   min-width: 0;
 }
 
-.transaction-title {
+.transaction-detail-title {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -43,7 +43,7 @@
   line-height: 1.4;
 }
 
-.transaction-tags {
+.transaction-detail-tags {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
@@ -80,13 +80,13 @@
   color: var(--color-error);
 }
 
-.transaction-amount {
+.transaction-detail-amount {
   font-size: 1.25rem;
   font-weight: 700;
   flex-shrink: 0;
 }
 
-.transaction-details {
+.transaction-detail-details {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -123,30 +123,30 @@
     padding: 1rem;
   }
   
-  .transaction-header {
+  .transaction-detail-header {
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
   }
   
-  .transaction-main-info {
+  .transaction-detail-main-info {
     order: 1;
   }
   
-  .transaction-amount {
+  .transaction-detail-amount {
     order: 2;
     text-align: center;
     font-size: 1.125rem;
   }
   
-  .transaction-icon {
+  .transaction-detail-icon {
     order: 3;
     align-self: center;
     width: 36px;
     height: 36px;
   }
   
-  .transaction-tags {
+  .transaction-detail-tags {
     justify-content: center;
   }
 }

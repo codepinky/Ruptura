@@ -70,6 +70,17 @@
   --color-secondary: #a78bfa;
 }
 
+/* Estilos globais para selects no modo escuro */
+.dark select {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark select option {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+
 
 /* Forçar aplicação das variáveis em modo escuro */
 .dark * {

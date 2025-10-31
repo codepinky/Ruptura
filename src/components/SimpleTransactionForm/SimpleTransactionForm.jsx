@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { X, DollarSign, Calendar, Tag, FileText } from 'lucide-react';
 import { useFinancial, TRANSACTION_TYPES } from '../../context/FinancialContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useNotification } from '../../context/NotificationContext';
 import './SimpleTransactionForm.css';
 
 const SimpleTransactionForm = ({ isOpen, onClose }) => {
-  const { categories, addTransaction } = useFinancial();
+  const { categories, addTransaction, transactions } = useFinancial();
   const { currentTheme } = useTheme();
+  const { success, error } = useNotification();
   
   const [formData, setFormData] = useState({
     description: '',
@@ -94,18 +96,24 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
       return;
     }
 
-    const transactionData = {
-      description: formData.description,
-      amount: parseFloat(formData.amount),
-      type: formData.type,
-      categoryId: parseInt(formData.categoryId),
-      date: formData.date,
-      notes: formData.notes || ''
-    };
+    try {
+      const transactionData = {
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        type: formData.type,
+        categoryId: parseInt(formData.categoryId),
+        date: formData.date,
+        notes: formData.notes || ''
+      };
 
-    // Adicionar nova transação (o ID será gerado pelo reducer)
-    addTransaction(transactionData);
-    onClose();
+      // Adicionar nova transação (o ID será gerado pelo reducer)
+      addTransaction(transactionData);
+      success('Transação adicionada com sucesso!');
+      onClose();
+    } catch (err) {
+      error('Erro ao salvar transação. Tente novamente.');
+      console.error('Erro ao salvar transação:', err);
+    }
   };
 
   const filteredCategories = categories.filter(cat => cat.type === formData.type);

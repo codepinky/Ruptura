@@ -32,253 +32,11 @@ const DEFAULT_CATEGORIES = [
 
 // Estado inicial
 const initialState = {
-  transactions: [
-    // Junho 2025
-    { id: 1, description: 'Salário Junho', amount: 4500.00, type: TRANSACTION_TYPES.INCOME, categoryId: 1, date: '2025-06-05', notes: 'Salário mensal' },
-    { id: 2, description: 'Supermercado Extra', amount: 280.50, type: TRANSACTION_TYPES.EXPENSE, categoryId: 4, date: '2025-06-08', notes: 'Compras da semana' },
-    { id: 3, description: 'Uber', amount: 35.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 5, date: '2025-06-10', notes: 'Viagem para trabalho' },
-    { id: 4, description: 'Netflix', amount: 45.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 14, date: '2025-06-15', notes: 'Assinatura mensal' },
-    { id: 5, description: 'Academia Smart Fit', amount: 89.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 13, date: '2025-06-15', notes: 'Mensalidade academia' },
-    { id: 6, description: 'Conta de Luz', amount: 185.30, type: TRANSACTION_TYPES.EXPENSE, categoryId: 6, date: '2025-06-20', notes: 'Conta mensal energia' },
-    { id: 7, description: 'Farmácia', amount: 125.80, type: TRANSACTION_TYPES.EXPENSE, categoryId: 17, date: '2025-06-22', notes: 'Medicamentos' },
-    { id: 8, description: 'Cinema', amount: 45.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 9, date: '2025-06-25', notes: 'Ingresso filme' },
-    { id: 9, description: 'Freelance Design', amount: 800.00, type: TRANSACTION_TYPES.INCOME, categoryId: 2, date: '2025-06-28', notes: 'Projeto logo empresa' },
-    { id: 10, description: 'Café Starbucks', amount: 18.50, type: TRANSACTION_TYPES.EXPENSE, categoryId: 19, date: '2025-06-30', notes: 'Café da manhã' },
-
-    // Julho 2025
-    { id: 11, description: 'Salário Julho', amount: 4500.00, type: TRANSACTION_TYPES.INCOME, categoryId: 1, date: '2025-07-05', notes: 'Salário mensal' },
-    { id: 12, description: 'Supermercado Pão de Açúcar', amount: 320.75, type: TRANSACTION_TYPES.EXPENSE, categoryId: 4, date: '2025-07-08', notes: 'Compras mensais' },
-    { id: 13, description: 'Gasolina', amount: 180.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 15, date: '2025-07-10', notes: 'Abastecimento carro' },
-    { id: 14, description: 'Spotify', amount: 21.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 14, date: '2025-07-15', notes: 'Assinatura música' },
-    { id: 15, description: 'Academia Smart Fit', amount: 89.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 13, date: '2025-07-15', notes: 'Mensalidade academia' },
-    { id: 16, description: 'Conta de Água', amount: 95.20, type: TRANSACTION_TYPES.EXPENSE, categoryId: 6, date: '2025-07-20', notes: 'Conta mensal água' },
-    { id: 17, description: 'Roupas Renner', amount: 280.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 11, date: '2025-07-22', notes: 'Camisas e calças' },
-    { id: 18, description: 'Restaurante', amount: 95.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 4, date: '2025-07-25', notes: 'Jantar com namorada' },
-    { id: 19, description: 'Presente Dia dos Namorados', amount: 150.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 16, date: '2025-07-14', notes: 'Presente especial' },
-    { id: 20, description: 'Investimento CDB', amount: 1000.00, type: TRANSACTION_TYPES.INCOME, categoryId: 3, date: '2025-07-28', notes: 'Rendimento investimento' },
-
-    // Agosto 2025
-    { id: 21, description: 'Salário Agosto', amount: 4500.00, type: TRANSACTION_TYPES.INCOME, categoryId: 1, date: '2025-08-05', notes: 'Salário mensal' },
-    { id: 22, description: 'Supermercado Atacadão', amount: 195.30, type: TRANSACTION_TYPES.EXPENSE, categoryId: 4, date: '2025-08-08', notes: 'Compras básicas' },
-    { id: 23, description: 'Uber', amount: 42.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 5, date: '2025-08-10', notes: 'Viagem aeroporto' },
-    { id: 24, description: 'Netflix', amount: 45.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 14, date: '2025-08-15', notes: 'Assinatura mensal' },
-    { id: 25, description: 'Academia Smart Fit', amount: 89.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 13, date: '2025-08-15', notes: 'Mensalidade academia' },
-    { id: 26, description: 'Conta de Luz', amount: 210.45, type: TRANSACTION_TYPES.EXPENSE, categoryId: 6, date: '2025-08-20', notes: 'Conta mensal energia' },
-    { id: 27, description: 'Farmácia', amount: 85.60, type: TRANSACTION_TYPES.EXPENSE, categoryId: 17, date: '2025-08-22', notes: 'Vitamina D' },
-    { id: 28, description: 'Cinema', amount: 50.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 9, date: '2025-08-25', notes: 'Ingresso + pipoca' },
-    { id: 29, description: 'Freelance Web', amount: 1200.00, type: TRANSACTION_TYPES.INCOME, categoryId: 2, date: '2025-08-28', notes: 'Site e-commerce' },
-    { id: 30, description: 'Café', amount: 12.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 19, date: '2025-08-30', notes: 'Café expresso' },
-
-    // Setembro 2025
-    { id: 31, description: 'Salário Setembro', amount: 4500.00, type: TRANSACTION_TYPES.INCOME, categoryId: 1, date: '2025-09-05', notes: 'Salário mensal' },
-    { id: 32, description: 'Supermercado Extra', amount: 245.80, type: TRANSACTION_TYPES.EXPENSE, categoryId: 4, date: '2025-09-08', notes: 'Compras da semana' },
-    { id: 33, description: 'Gasolina', amount: 165.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 15, date: '2025-09-10', notes: 'Abastecimento' },
-    { id: 34, description: 'Spotify', amount: 21.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 14, date: '2025-09-15', notes: 'Assinatura música' },
-    { id: 35, description: 'Academia Smart Fit', amount: 89.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 13, date: '2025-09-15', notes: 'Mensalidade academia' },
-    { id: 36, description: 'Conta de Água', amount: 78.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 6, date: '2025-09-20', notes: 'Conta mensal água' },
-    { id: 37, description: 'Tênis Nike', amount: 350.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 11, date: '2025-09-22', notes: 'Tênis corrida' },
-    { id: 38, description: 'Restaurante', amount: 120.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 4, date: '2025-09-25', notes: 'Almoço família' },
-    { id: 39, description: 'Bônus Trimestral', amount: 800.00, type: TRANSACTION_TYPES.INCOME, categoryId: 20, date: '2025-09-30', notes: 'Bônus Q3' },
-    { id: 40, description: 'Investimento', amount: 750.00, type: TRANSACTION_TYPES.INCOME, categoryId: 3, date: '2025-09-28', notes: 'Rendimento CDB' },
-
-    // Outubro 2025 (mês atual)
-    { id: 41, description: 'Salário Outubro', amount: 4500.00, type: TRANSACTION_TYPES.INCOME, categoryId: 1, date: '2025-10-05', notes: 'Salário mensal' },
-    { id: 42, description: 'Supermercado Pão de Açúcar', amount: 310.25, type: TRANSACTION_TYPES.EXPENSE, categoryId: 4, date: '2025-10-08', notes: 'Compras mensais' },
-    { id: 43, description: 'Uber', amount: 28.50, type: TRANSACTION_TYPES.EXPENSE, categoryId: 5, date: '2025-10-10', notes: 'Viagem centro' },
-    { id: 44, description: 'Netflix', amount: 45.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 14, date: '2025-10-15', notes: 'Assinatura mensal' },
-    { id: 45, description: 'Academia Smart Fit', amount: 89.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 13, date: '2025-10-15', notes: 'Mensalidade academia' },
-    { id: 46, description: 'Conta de Luz', amount: 195.60, type: TRANSACTION_TYPES.EXPENSE, categoryId: 6, date: '2025-10-20', notes: 'Conta mensal energia' },
-    { id: 47, description: 'Farmácia', amount: 95.40, type: TRANSACTION_TYPES.EXPENSE, categoryId: 17, date: '2025-10-22', notes: 'Medicamentos' },
-    { id: 48, description: 'Cinema', amount: 38.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 9, date: '2025-10-25', notes: 'Ingresso filme' },
-    { id: 49, description: 'Freelance App', amount: 1500.00, type: TRANSACTION_TYPES.INCOME, categoryId: 2, date: '2025-10-28', notes: 'App mobile' },
-    { id: 50, description: 'Café', amount: 15.50, type: TRANSACTION_TYPES.EXPENSE, categoryId: 19, date: '2025-10-30', notes: 'Café manhã' },
-
-    // Transações extras variadas
-    { id: 51, description: 'Livro Amazon', amount: 45.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 8, date: '2025-07-15', notes: 'Livro programação' },
-    { id: 52, description: 'Curso Online', amount: 199.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 8, date: '2025-08-10', notes: 'Curso React' },
-    { id: 53, description: 'Smartphone', amount: 1200.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 12, date: '2025-09-15', notes: 'iPhone usado' },
-    { id: 54, description: 'Viagem SP', amount: 450.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 18, date: '2025-10-20', notes: 'Fim de semana SP' },
-    { id: 55, description: 'Presente Mãe', amount: 180.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 16, date: '2025-10-12', notes: 'Dia das Mães' },
-    { id: 56, description: 'Freelance SEO', amount: 600.00, type: TRANSACTION_TYPES.INCOME, categoryId: 2, date: '2025-10-10', notes: 'Otimização site' },
-    { id: 57, description: 'Livro Kindle', amount: 29.90, type: TRANSACTION_TYPES.EXPENSE, categoryId: 8, date: '2025-10-15', notes: 'E-book finanças' },
-    { id: 58, description: 'Festa Aniversário', amount: 200.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 9, date: '2025-10-20', notes: 'Festa amigo' },
-    { id: 59, description: 'Consulta Médica', amount: 150.00, type: TRANSACTION_TYPES.EXPENSE, categoryId: 7, date: '2025-10-25', notes: 'Check-up anual' },
-    { id: 60, description: 'Bônus Performance', amount: 500.00, type: TRANSACTION_TYPES.INCOME, categoryId: 20, date: '2025-10-30', notes: 'Meta atingida' }
-  ],
+  transactions: [],
   categories: DEFAULT_CATEGORIES,
   budgets: [],
-  goals: [
-    {
-      id: 1,
-      name: 'Reserva de Emergência',
-      targetAmount: 15000,
-      currentAmount: 8500,
-      deadline: '2025-12-31',
-      type: 'emergency',
-      priority: 'high',
-      description: 'Fundos para emergências - 6 meses de gastos',
-      createdAt: '2025-01-01'
-    },
-    {
-      id: 2,
-      name: 'Viagem Europa',
-      targetAmount: 8000,
-      currentAmount: 3200,
-      deadline: '2025-08-15',
-      type: 'vacation',
-      priority: 'high',
-      description: 'Viagem de 15 dias para França e Itália',
-      createdAt: '2025-01-01'
-    },
-    {
-      id: 3,
-      name: 'Notebook Gamer',
-      targetAmount: 3500,
-      currentAmount: 2100,
-      deadline: '2025-07-30',
-      type: 'other',
-      priority: 'medium',
-      description: 'Notebook para trabalho e jogos',
-      createdAt: '2025-02-15'
-    },
-    {
-      id: 4,
-      name: 'Curso de Especialização',
-      targetAmount: 1200,
-      currentAmount: 1200,
-      deadline: '2025-06-30',
-      type: 'education',
-      priority: 'high',
-      description: 'Curso de Data Science online',
-      createdAt: '2025-03-01'
-    },
-    {
-      id: 5,
-      name: 'Moto Nova',
-      targetAmount: 12000,
-      currentAmount: 4500,
-      deadline: '2026-03-31',
-      type: 'car',
-      priority: 'medium',
-      description: 'Moto Honda CB 600F',
-      createdAt: '2025-04-01'
-    },
-    {
-      id: 6,
-      name: 'Apartamento',
-      targetAmount: 50000,
-      currentAmount: 8500,
-      deadline: '2027-12-31',
-      type: 'home',
-      priority: 'low',
-      description: 'Entrada para apartamento próprio',
-      createdAt: '2025-01-01'
-    },
-    {
-      id: 7,
-      name: 'Festival de Música',
-      targetAmount: 800,
-      currentAmount: 800,
-      deadline: '2025-07-20',
-      type: 'vacation',
-      priority: 'medium',
-      description: 'Rock in Rio 2025',
-      createdAt: '2025-05-01'
-    },
-    {
-      id: 8,
-      name: 'Investimento Ações',
-      targetAmount: 5000,
-      currentAmount: 1800,
-      deadline: '2025-12-31',
-      type: 'investment',
-      priority: 'medium',
-      description: 'Portfolio diversificado de ações',
-      createdAt: '2025-02-01'
-    }
-  ],
-  savings: [
-    {
-      id: 1,
-      name: 'Reserva de Emergência',
-      amount: 800,
-      frequency: 'monthly',
-      startDate: '2025-01-01',
-      endDate: '2025-12-31',
-      category: 'emergency',
-      active: true
-    },
-    {
-      id: 2,
-      name: 'Viagem Europa',
-      amount: 600,
-      frequency: 'monthly',
-      startDate: '2025-01-01',
-      endDate: '2025-08-15',
-      category: 'vacation',
-      active: true
-    },
-    {
-      id: 3,
-      name: 'Notebook Gamer',
-      amount: 300,
-      frequency: 'monthly',
-      startDate: '2025-02-15',
-      endDate: '2025-07-30',
-      category: 'other',
-      active: true
-    },
-    {
-      id: 4,
-      name: 'Investimento Semanal',
-      amount: 150,
-      frequency: 'weekly',
-      startDate: '2025-03-01',
-      endDate: '2025-12-31',
-      category: 'investment',
-      active: true
-    },
-    {
-      id: 5,
-      name: 'Moto Nova',
-      amount: 500,
-      frequency: 'monthly',
-      startDate: '2025-04-01',
-      endDate: '2026-03-31',
-      category: 'car',
-      active: true
-    },
-    {
-      id: 6,
-      name: 'Apartamento',
-      amount: 1000,
-      frequency: 'monthly',
-      startDate: '2025-01-01',
-      endDate: '2027-12-31',
-      category: 'home',
-      active: true
-    },
-    {
-      id: 7,
-      name: 'Café Diário',
-      amount: 15,
-      frequency: 'daily',
-      startDate: '2025-06-01',
-      endDate: '2025-12-31',
-      category: 'other',
-      active: false
-    },
-    {
-      id: 8,
-      name: 'Academia Trimestral',
-      amount: 270,
-      frequency: 'quarterly',
-      startDate: '2025-01-01',
-      endDate: '2025-12-31',
-      category: 'health',
-      active: true
-    }
-  ],
+  goals: [],
+  savings: [],
   loading: false,
   error: null
 };
@@ -447,21 +205,167 @@ export function FinancialProvider({ children }) {
   const [state, dispatch] = useReducer(financialReducer, initialState);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Função para gerar dados de exemplo desde o início do ano
+  const generateSampleData = useCallback(() => {
+    const currentYear = new Date().getFullYear();
+    const today = new Date();
+    const sampleTransactions = [];
+    
+    // Categorias de receita e despesa
+    const incomeCategories = [1, 2, 3, 20]; // Salário, Freelance, Investimentos, Bônus
+    const expenseCategories = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+    
+    // Criar transações mensais desde janeiro
+    for (let month = 0; month <= today.getMonth(); month++) {
+      const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
+      const maxDay = month === today.getMonth() ? today.getDate() : daysInMonth;
+      
+      // Receitas mensais (Salário sempre no dia 5)
+      if (maxDay >= 5) {
+        sampleTransactions.push({
+          description: 'Salário',
+          amount: 3500 + Math.floor(Math.random() * 500),
+          type: TRANSACTION_TYPES.INCOME,
+          categoryId: 1,
+          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-05`,
+          notes: 'Salário mensal'
+        });
+      }
+      
+      // Receitas extras ocasionais
+      if (Math.random() > 0.5 && maxDay >= 10) {
+        const extraDay = Math.floor(Math.random() * (maxDay - 10)) + 10;
+        sampleTransactions.push({
+          description: Math.random() > 0.7 ? 'Freelance' : 'Bônus',
+          amount: Math.random() > 0.7 ? 800 + Math.floor(Math.random() * 1200) : 500 + Math.floor(Math.random() * 1000),
+          type: TRANSACTION_TYPES.INCOME,
+          categoryId: Math.random() > 0.7 ? 2 : 20,
+          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-${String(extraDay).padStart(2, '0')}`,
+          notes: ''
+        });
+      }
+      
+      // Despesas fixas mensais (Aluguel/Moradia - dia 1)
+      if (maxDay >= 1) {
+        sampleTransactions.push({
+          description: 'Aluguel',
+          amount: 1200 + Math.floor(Math.random() * 200),
+          type: TRANSACTION_TYPES.EXPENSE,
+          categoryId: 6,
+          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-01`,
+          notes: 'Aluguel mensal'
+        });
+      }
+      
+      // Conta de luz e água (por volta do dia 10-15)
+      if (maxDay >= 10) {
+        const utilityDay = Math.floor(Math.random() * 5) + 10;
+        sampleTransactions.push({
+          description: 'Contas de água e luz',
+          amount: 150 + Math.floor(Math.random() * 100),
+          type: TRANSACTION_TYPES.EXPENSE,
+          categoryId: 6,
+          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-${String(Math.min(utilityDay, maxDay)).padStart(2, '0')}`,
+          notes: ''
+        });
+      }
+      
+      // Despesas variáveis ao longo do mês (alimentação, transporte, etc)
+      const numVariableExpenses = Math.floor(Math.random() * 15) + 20; // 20-35 transações por mês
+      for (let i = 0; i < numVariableExpenses; i++) {
+        const expenseDay = Math.floor(Math.random() * maxDay) + 1;
+        const categoryIndex = Math.floor(Math.random() * expenseCategories.length);
+        const categoryId = expenseCategories[categoryIndex];
+        
+        // Valores variáveis por categoria
+        let amount;
+        if (categoryId === 4) { // Alimentação
+          amount = 20 + Math.floor(Math.random() * 80);
+        } else if (categoryId === 5) { // Transporte
+          amount = 15 + Math.floor(Math.random() * 50);
+        } else if (categoryId === 12 || categoryId === 11) { // Tecnologia ou Roupas
+          amount = 100 + Math.floor(Math.random() * 500);
+        } else {
+          amount = 30 + Math.floor(Math.random() * 150);
+        }
+        
+        const descriptions = {
+          4: ['Supermercado', 'Restaurante', 'Delivery', 'Padaria', 'Lanche'],
+          5: ['Uber', 'Gasolina', 'Estacionamento', 'Ônibus', 'Metrô'],
+          7: ['Farmácia', 'Consulta médica', 'Exame', 'Remédio'],
+          9: ['Cinema', 'Show', 'Bar', 'Pizza', 'Festa'],
+          11: ['Roupa', 'Sapato', 'Acessório'],
+          12: ['Cabo USB', 'Fone', 'Mouse', 'Carregador'],
+          14: ['Netflix', 'Spotify', 'Amazon Prime'],
+          15: ['Combustível'],
+          19: ['Café', 'Café da manhã']
+        };
+        
+        const categoryDescriptions = descriptions[categoryId] || ['Compra'];
+        const description = categoryDescriptions[Math.floor(Math.random() * categoryDescriptions.length)];
+        
+        sampleTransactions.push({
+          description,
+          amount,
+          type: TRANSACTION_TYPES.EXPENSE,
+          categoryId,
+          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-${String(expenseDay).padStart(2, '0')}`,
+          notes: ''
+        });
+      }
+    }
+    
+    // Adicionar todas as transações
+    sampleTransactions.forEach(transaction => {
+      dispatch({ type: ACTIONS.ADD_TRANSACTION, payload: transaction });
+    });
+    
+    return sampleTransactions.length;
+  }, []);
+
   // Carregar dados do localStorage apenas uma vez na montagem
   useEffect(() => {
-    if (!isInitialized) {
-      const savedData = localStorage.getItem('financial-data');
-      if (savedData) {
-        try {
-          const data = JSON.parse(savedData);
+    const savedData = localStorage.getItem('financial-data');
+    const currentYear = new Date().getFullYear();
+    
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        // Verificar se há transações do ano atual
+        const currentYearTransactions = data.transactions?.filter(t => {
+          if (!t.date) return false;
+          const transactionYear = new Date(t.date).getFullYear();
+          return transactionYear === currentYear;
+        }) || [];
+        
+        // Se não houver transações ou houver menos de 10 do ano atual, gerar dados de exemplo
+        if (!data.transactions || currentYearTransactions.length < 10) {
+          // Carregar dados existentes primeiro
+          if (data.transactions && data.transactions.length > 0) {
+            dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
+          }
+          // Adicionar um pequeno delay para evitar problemas de renderização
+          setTimeout(() => {
+            generateSampleData();
+          }, 500);
+        } else {
           dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
-        } catch (error) {
-          console.error('Erro ao carregar dados do localStorage:', error);
         }
+      } catch (error) {
+        console.error('Erro ao carregar dados do localStorage:', error);
+        // Se houver erro, gerar dados de exemplo
+        setTimeout(() => {
+          generateSampleData();
+        }, 500);
       }
-      setIsInitialized(true);
+    } else {
+      // Se não houver dados salvos, gerar dados de exemplo
+      setTimeout(() => {
+        generateSampleData();
+      }, 500);
     }
-  }, [isInitialized]);
+    setIsInitialized(true);
+  }, [generateSampleData]);
 
   // Salvar dados no localStorage apenas após inicialização
   useEffect(() => {
@@ -487,6 +391,15 @@ export function FinancialProvider({ children }) {
 
   const deleteTransaction = useCallback((id) => {
     dispatch({ type: ACTIONS.DELETE_TRANSACTION, payload: id });
+  }, []);
+
+  const duplicateTransaction = useCallback((transaction) => {
+    const { id, ...transactionData } = transaction;
+    const duplicatedTransaction = {
+      ...transactionData,
+      date: new Date().toISOString().split('T')[0], // Data atual
+    };
+    dispatch({ type: ACTIONS.ADD_TRANSACTION, payload: duplicatedTransaction });
   }, []);
 
   const addCategory = useCallback((category) => {
@@ -715,6 +628,7 @@ export function FinancialProvider({ children }) {
     addTransaction,
     updateTransaction,
     deleteTransaction,
+    duplicateTransaction,
     addCategory,
     updateCategory,
     deleteCategory,
@@ -740,12 +654,14 @@ export function FinancialProvider({ children }) {
     getMonthlyProjection,
     getYearlyProjection,
     getCategoryTrends,
+    generateSampleData,
     TRANSACTION_TYPES
   }), [
     state,
     addTransaction,
     updateTransaction,
     deleteTransaction,
+    duplicateTransaction,
     addCategory,
     updateCategory,
     deleteCategory,
@@ -758,7 +674,8 @@ export function FinancialProvider({ children }) {
     addSaving,
     updateSaving,
     deleteSaving,
-    updateGoalProgress
+    updateGoalProgress,
+    generateSampleData
   ]);
 
   return (

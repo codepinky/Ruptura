@@ -33,6 +33,11 @@ const ExpenseChart = ({ data }) => {
   const chartRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [themeColors, setThemeColors] = useState({
+    text: '#1e293b',
+    border: '#e2e8f0',
+    bgCard: '#ffffff'
+  });
 
   // Detectar mobile
   useEffect(() => {
@@ -43,6 +48,24 @@ const ExpenseChart = ({ data }) => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Ler variáveis CSS do tema atual e acompanhar mudanças de tema
+  useEffect(() => {
+    const readThemeColors = () => {
+      const styles = getComputedStyle(document.documentElement);
+      const text = styles.getPropertyValue('--text-primary').trim() || '#1e293b';
+      const border = styles.getPropertyValue('--border-primary').trim() || '#e2e8f0';
+      const bgCard = styles.getPropertyValue('--bg-card').trim() || '#ffffff';
+      setThemeColors({ text, border, bgCard });
+    };
+
+    readThemeColors();
+
+    // Observar mudanças na classe do root (.dark/.light)
+    const observer = new MutationObserver(readThemeColors);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
   }, []);
 
   // Paleta de cores minimalista com gradientes sutis
@@ -108,7 +131,7 @@ const ExpenseChart = ({ data }) => {
             size: isMobile ? 11 : 12,
             weight: '500'
           },
-          color: 'var(--text-primary)',
+          color: themeColors.text,
           generateLabels: (chart) => {
             const data = chart.data;
             if (data.labels?.length && data.datasets?.length) {
@@ -128,10 +151,10 @@ const ExpenseChart = ({ data }) => {
       },
       tooltip: {
         enabled: true,
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: 'var(--text-primary)',
-        bodyColor: 'var(--text-primary)',
-        borderColor: 'var(--border-primary)',
+        backgroundColor: themeColors.bgCard,
+        titleColor: themeColors.text,
+        bodyColor: themeColors.text,
+        borderColor: themeColors.border,
         borderWidth: 1,
         cornerRadius: 12,
         displayColors: true,
