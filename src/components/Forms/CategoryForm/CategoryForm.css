@@ -5,15 +5,19 @@
   left: 0;
   right: 0;
   bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 99999;
   padding: 2rem;
   animation: fadeIn 0.3s ease-out;
   overflow-y: auto;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .modal-content {
@@ -291,6 +295,8 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0.75rem;
+  position: relative;
+  z-index: 2;
 }
 
 .color-option {
@@ -299,19 +305,26 @@
   border: 3px solid transparent;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
   position: relative;
+  padding: 0;
+  margin: 0;
+  background-image: none !important;
+  background-color: var(--option-color, transparent) !important;
+  background: var(--option-color, transparent) !important;
 }
 
 .color-option:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.1);
 }
 
 .color-option.selected {
   border-color: var(--text-primary);
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  filter: brightness(1);
 }
 
 .color-option.selected::after {

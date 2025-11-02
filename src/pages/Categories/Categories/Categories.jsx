@@ -91,7 +91,9 @@ const Categories = () => {
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(value);
   };
 
@@ -118,75 +120,77 @@ const Categories = () => {
       <div className="categories-header">
         <div className="header-content">
           <h1 className="page-title">Categorias</h1>
-          <p className="page-subtitle">
-            Gerencie suas categorias financeiras e acompanhe os gastos
-          </p>
-        </div>
-        
-        <div className="header-actions">
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowCreateForm(true)}
-          >
-            <Plus size={20} />
-            Nova Categoria
-          </button>
         </div>
       </div>
 
       <div className="categories-controls">
-        <div className="search-filter-section">
-          <div className="search-box">
-            <Search size={20} />
+        <div className="controls-section controls-search">
+          <div className="search-wrapper">
+            <Search size={20} className="search-icon" />
             <input
               type="text"
               placeholder="Buscar categorias..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
             />
-          </div>
-          
-          <div className="filter-controls">
-            <select 
-              value={selectedType} 
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Todas as categorias</option>
-              <option value={TRANSACTION_TYPES.INCOME}>Receitas</option>
-              <option value={TRANSACTION_TYPES.EXPENSE}>Despesas</option>
-            </select>
           </div>
         </div>
 
-        <div className="view-controls">
-          <div className="view-mode-buttons">
+        <div className="controls-section controls-filter">
+          <select 
+            value={selectedType} 
+            onChange={(e) => setSelectedType(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">Todas as categorias</option>
+            <option value={TRANSACTION_TYPES.INCOME}>Receitas</option>
+            <option value={TRANSACTION_TYPES.EXPENSE}>Despesas</option>
+          </select>
+        </div>
+
+        <div className="controls-section controls-view">
+          <div className="view-toggle">
             <button 
-              className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
               onClick={() => setViewMode('grid')}
+              title="Visualização em grade"
             >
               <BarChart3 size={18} />
             </button>
             <button 
-              className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
+              title="Visualização em lista"
             >
               <Settings size={18} />
             </button>
             <button 
-              className={`view-btn ${viewMode === 'chart' ? 'active' : ''}`}
+              className={`view-toggle-btn ${viewMode === 'chart' ? 'active' : ''}`}
               onClick={() => setViewMode('chart')}
+              title="Visualização em gráfico"
             >
               <PieChart size={18} />
             </button>
           </div>
+        </div>
+
+        <div className="controls-section controls-action">
+          <button 
+            type="button"
+            className="create-btn"
+            onClick={() => setShowCreateForm(true)}
+          >
+            <Plus size={18} />
+            <span>Nova Categoria</span>
+          </button>
         </div>
       </div>
 
       <div className="categories-stats">
         <div className="stat-card">
           <div className="stat-icon income">
-            <TrendingUp size={24} />
+            <TrendingUp size={20} />
           </div>
           <div className="stat-content">
             <h3>{filteredCategories.length}</h3>
@@ -196,7 +200,7 @@ const Categories = () => {
         
         <div className="stat-card">
           <div className="stat-icon expense">
-            <DollarSign size={24} />
+            <DollarSign size={20} />
           </div>
           <div className="stat-content">
             <h3>{formatCurrency(filteredCategories.reduce((sum, cat) => sum + cat.totalExpense, 0))}</h3>
@@ -206,7 +210,7 @@ const Categories = () => {
         
         <div className="stat-card">
           <div className="stat-icon income">
-            <TrendingUp size={24} />
+            <TrendingUp size={20} />
           </div>
           <div className="stat-content">
             <h3>{formatCurrency(filteredCategories.reduce((sum, cat) => sum + cat.totalIncome, 0))}</h3>
@@ -216,7 +220,7 @@ const Categories = () => {
         
         <div className="stat-card">
           <div className="stat-icon">
-            <Calendar size={24} />
+            <Calendar size={20} />
           </div>
           <div className="stat-content">
             <h3>{filteredCategories.reduce((sum, cat) => sum + cat.totalTransactions, 0)}</h3>

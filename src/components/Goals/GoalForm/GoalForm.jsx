@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Target, Calendar, DollarSign, FileText, AlertCircle } from 'lucide-react';
 import './GoalForm.css';
 
-const GoalForm = ({ isOpen, onClose, goal = null }) => {
+const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
   const [formData, setFormData] = useState({
     name: goal?.name || '',
     targetAmount: goal?.targetAmount || '',
@@ -12,6 +13,52 @@ const GoalForm = ({ isOpen, onClose, goal = null }) => {
     priority: goal?.priority || 'medium',
     description: goal?.description || ''
   });
+
+  // Atualizar formData quando goal mudar
+  useEffect(() => {
+    if (goal) {
+      setFormData({
+        name: goal.name || '',
+        targetAmount: goal.targetAmount || '',
+        currentAmount: goal.currentAmount || '',
+        deadline: goal.deadline || '',
+        type: goal.type || 'emergency',
+        priority: goal.priority || 'medium',
+        description: goal.description || ''
+      });
+    } else {
+      setFormData({
+        name: '',
+        targetAmount: '',
+        currentAmount: '',
+        deadline: '',
+        type: 'emergency',
+        priority: 'medium',
+        description: ''
+      });
+    }
+  }, [goal]);
+
+  // Prevenir scroll do body quando modal está aberto
+  useEffect(() => {
+    if (isOpen) {
+      // Salvar o scroll atual e desabilitar scroll
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        // Restaurar scroll quando modal fechar
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [isOpen]);
 
   const [errors, setErrors] = useState({});
 
@@ -63,7 +110,8 @@ const GoalForm = ({ isOpen, onClose, goal = null }) => {
 
     if (!formData.deadline) {
       newErrors.deadline = 'Data limite é obrigatória';
-    } else if (new Date(formData.deadline) <= new Date()) {
+    } else if (!goal && new Date(formData.deadline) <= new Date()) {
+      // Apenas para novas metas, exigir data futura
       newErrors.deadline = 'Data limite deve ser futura';
     }
 
@@ -90,14 +138,15 @@ const GoalForm = ({ isOpen, onClose, goal = null }) => {
       createdAt: goal?.createdAt || new Date().toISOString().split('T')[0]
     };
 
-    // Aqui você chamaria a função para adicionar/atualizar a meta
-    // addGoal(goalData); // Implementar quando necessário
+    if (onSubmit) {
+      onSubmit(goalData);
+    }
     onClose();
   };
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div className="modal-overlay" onClick={onClose}>
       <div className="goal-form" onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
@@ -277,6 +326,8 @@ const GoalForm = ({ isOpen, onClose, goal = null }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default GoalForm;

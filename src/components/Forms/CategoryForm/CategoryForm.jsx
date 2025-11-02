@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Palette, Type, DollarSign } from 'lucide-react';
 import './CategoryForm.css';
 
@@ -146,7 +147,7 @@ const CategoryForm = ({
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
@@ -234,16 +235,22 @@ const CategoryForm = ({
               </div>
               
               <div className="color-options">
-                {predefinedColors.map((color, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    className={`color-option ${formData.color === color ? 'selected' : ''}`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => handleInputChange('color', color)}
-                    title={color}
-                  />
-                ))}
+                {predefinedColors.map((color, index) => {
+                  const buttonStyle = {
+                    backgroundColor: color,
+                    '--option-color': color
+                  };
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`color-option ${formData.color === color ? 'selected' : ''}`}
+                      style={buttonStyle}
+                      onClick={() => handleInputChange('color', color)}
+                      title={color}
+                    />
+                  );
+                })}
               </div>
               
               <div className="custom-color">
@@ -278,6 +285,8 @@ const CategoryForm = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default CategoryForm;

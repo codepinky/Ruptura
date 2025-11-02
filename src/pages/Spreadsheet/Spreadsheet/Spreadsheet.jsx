@@ -122,32 +122,46 @@ const Spreadsheet = () => {
           <h1 className="page-title">📊 Planilha Financeira</h1>
           <p className="page-subtitle">Controle detalhado de gastos, metas e economias</p>
         </div>
-        
-        <div className="header-actions">
-          <div className="date-filters">
-            <select 
-              value={selectedMonth} 
-              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="filter-select"
-            >
-              {months.map((month, index) => (
-                <option key={index} value={index}>{month}</option>
-              ))}
-            </select>
-            <select 
-              value={selectedYear} 
-              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="filter-select"
-            >
-              {years.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
+      </div>
+
+      {/* Filtros e Ações */}
+      <div className="filters-toolbar">
+        <div className="date-selectors">
+          <label htmlFor="month-select" className="sr-only">Selecionar mês</label>
+          <select 
+            id="month-select"
+            value={selectedMonth} 
+            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+            className="date-select"
+            aria-label="Selecionar mês"
+          >
+            {months.map((month, index) => (
+              <option key={index} value={index}>{month}</option>
+            ))}
+          </select>
           
-          <button className="export-button">
-            <Download size={16} />
-            Exportar
+          <label htmlFor="year-select" className="sr-only">Selecionar ano</label>
+          <select 
+            id="year-select"
+            value={selectedYear} 
+            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+            className="date-select"
+            aria-label="Selecionar ano"
+          >
+            {years.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="toolbar-actions">
+          <button 
+            className="action-button export-btn"
+            aria-label="Exportar dados"
+            title="Exportar dados financeiros"
+          >
+            <Download size={20} />
+            <span>Exportar</span>
           </button>
         </div>
       </div>
@@ -250,9 +264,9 @@ const Spreadsheet = () => {
             
             <div className="expenses-grid">
               {categoryAnalysis.length > 0 ? (
-                categoryAnalysis.map((category, index) => (
+                categoryAnalysis.map((category) => (
                   <CategoryAnalysisCard
-                    key={index}
+                    key={category.name}
                     category={category}
                     totalIncome={monthlyData.income}
                     totalExpense={monthlyData.expense}

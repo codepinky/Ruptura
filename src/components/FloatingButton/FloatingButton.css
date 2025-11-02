@@ -9,7 +9,7 @@
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  display: none; /* Oculto por padrão */
+  display: none; /* Ocultar por padrão (desktop) */
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
@@ -33,10 +33,10 @@
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3), 0 8px 24px rgba(16, 185, 129, 0.4);
 }
 
-/* Responsividade - Mostrar apenas no mobile */
+/* Responsividade */
 @media (max-width: 768px) {
   .floating-button {
-    display: flex; /* Mostrar no mobile */
+    display: flex; /* Mostrar apenas no mobile */
     bottom: 1rem;
     right: 1rem;
     width: 65px;

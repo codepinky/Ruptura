@@ -115,9 +115,11 @@ function financialReducer(state, action) {
       };
     
     case ACTIONS.ADD_BUDGET:
+      // Gerar ID único usando timestamp + número aleatório para evitar duplicatas
+      const uniqueId = Date.now() + Math.random();
       return {
         ...state,
-        budgets: [...state.budgets, { ...action.payload, id: Date.now() }]
+        budgets: [...state.budgets, { ...action.payload, id: uniqueId }]
       };
     
     case ACTIONS.UPDATE_BUDGET:
@@ -205,167 +207,23 @@ export function FinancialProvider({ children }) {
   const [state, dispatch] = useReducer(financialReducer, initialState);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Função para gerar dados de exemplo desde o início do ano
-  const generateSampleData = useCallback(() => {
-    const currentYear = new Date().getFullYear();
-    const today = new Date();
-    const sampleTransactions = [];
-    
-    // Categorias de receita e despesa
-    const incomeCategories = [1, 2, 3, 20]; // Salário, Freelance, Investimentos, Bônus
-    const expenseCategories = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
-    
-    // Criar transações mensais desde janeiro
-    for (let month = 0; month <= today.getMonth(); month++) {
-      const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
-      const maxDay = month === today.getMonth() ? today.getDate() : daysInMonth;
-      
-      // Receitas mensais (Salário sempre no dia 5)
-      if (maxDay >= 5) {
-        sampleTransactions.push({
-          description: 'Salário',
-          amount: 3500 + Math.floor(Math.random() * 500),
-          type: TRANSACTION_TYPES.INCOME,
-          categoryId: 1,
-          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-05`,
-          notes: 'Salário mensal'
-        });
-      }
-      
-      // Receitas extras ocasionais
-      if (Math.random() > 0.5 && maxDay >= 10) {
-        const extraDay = Math.floor(Math.random() * (maxDay - 10)) + 10;
-        sampleTransactions.push({
-          description: Math.random() > 0.7 ? 'Freelance' : 'Bônus',
-          amount: Math.random() > 0.7 ? 800 + Math.floor(Math.random() * 1200) : 500 + Math.floor(Math.random() * 1000),
-          type: TRANSACTION_TYPES.INCOME,
-          categoryId: Math.random() > 0.7 ? 2 : 20,
-          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-${String(extraDay).padStart(2, '0')}`,
-          notes: ''
-        });
-      }
-      
-      // Despesas fixas mensais (Aluguel/Moradia - dia 1)
-      if (maxDay >= 1) {
-        sampleTransactions.push({
-          description: 'Aluguel',
-          amount: 1200 + Math.floor(Math.random() * 200),
-          type: TRANSACTION_TYPES.EXPENSE,
-          categoryId: 6,
-          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-01`,
-          notes: 'Aluguel mensal'
-        });
-      }
-      
-      // Conta de luz e água (por volta do dia 10-15)
-      if (maxDay >= 10) {
-        const utilityDay = Math.floor(Math.random() * 5) + 10;
-        sampleTransactions.push({
-          description: 'Contas de água e luz',
-          amount: 150 + Math.floor(Math.random() * 100),
-          type: TRANSACTION_TYPES.EXPENSE,
-          categoryId: 6,
-          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-${String(Math.min(utilityDay, maxDay)).padStart(2, '0')}`,
-          notes: ''
-        });
-      }
-      
-      // Despesas variáveis ao longo do mês (alimentação, transporte, etc)
-      const numVariableExpenses = Math.floor(Math.random() * 15) + 20; // 20-35 transações por mês
-      for (let i = 0; i < numVariableExpenses; i++) {
-        const expenseDay = Math.floor(Math.random() * maxDay) + 1;
-        const categoryIndex = Math.floor(Math.random() * expenseCategories.length);
-        const categoryId = expenseCategories[categoryIndex];
-        
-        // Valores variáveis por categoria
-        let amount;
-        if (categoryId === 4) { // Alimentação
-          amount = 20 + Math.floor(Math.random() * 80);
-        } else if (categoryId === 5) { // Transporte
-          amount = 15 + Math.floor(Math.random() * 50);
-        } else if (categoryId === 12 || categoryId === 11) { // Tecnologia ou Roupas
-          amount = 100 + Math.floor(Math.random() * 500);
-        } else {
-          amount = 30 + Math.floor(Math.random() * 150);
-        }
-        
-        const descriptions = {
-          4: ['Supermercado', 'Restaurante', 'Delivery', 'Padaria', 'Lanche'],
-          5: ['Uber', 'Gasolina', 'Estacionamento', 'Ônibus', 'Metrô'],
-          7: ['Farmácia', 'Consulta médica', 'Exame', 'Remédio'],
-          9: ['Cinema', 'Show', 'Bar', 'Pizza', 'Festa'],
-          11: ['Roupa', 'Sapato', 'Acessório'],
-          12: ['Cabo USB', 'Fone', 'Mouse', 'Carregador'],
-          14: ['Netflix', 'Spotify', 'Amazon Prime'],
-          15: ['Combustível'],
-          19: ['Café', 'Café da manhã']
-        };
-        
-        const categoryDescriptions = descriptions[categoryId] || ['Compra'];
-        const description = categoryDescriptions[Math.floor(Math.random() * categoryDescriptions.length)];
-        
-        sampleTransactions.push({
-          description,
-          amount,
-          type: TRANSACTION_TYPES.EXPENSE,
-          categoryId,
-          date: `${currentYear}-${String(month + 1).padStart(2, '0')}-${String(expenseDay).padStart(2, '0')}`,
-          notes: ''
-        });
-      }
-    }
-    
-    // Adicionar todas as transações
-    sampleTransactions.forEach(transaction => {
-      dispatch({ type: ACTIONS.ADD_TRANSACTION, payload: transaction });
-    });
-    
-    return sampleTransactions.length;
-  }, []);
 
   // Carregar dados do localStorage apenas uma vez na montagem
   useEffect(() => {
     const savedData = localStorage.getItem('financial-data');
-    const currentYear = new Date().getFullYear();
     
     if (savedData) {
       try {
         const data = JSON.parse(savedData);
-        // Verificar se há transações do ano atual
-        const currentYearTransactions = data.transactions?.filter(t => {
-          if (!t.date) return false;
-          const transactionYear = new Date(t.date).getFullYear();
-          return transactionYear === currentYear;
-        }) || [];
-        
-        // Se não houver transações ou houver menos de 10 do ano atual, gerar dados de exemplo
-        if (!data.transactions || currentYearTransactions.length < 10) {
-          // Carregar dados existentes primeiro
-          if (data.transactions && data.transactions.length > 0) {
-            dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
-          }
-          // Adicionar um pequeno delay para evitar problemas de renderização
-          setTimeout(() => {
-            generateSampleData();
-          }, 500);
-        } else {
-          dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
-        }
+        // Carregar dados salvos
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
       } catch (error) {
         console.error('Erro ao carregar dados do localStorage:', error);
-        // Se houver erro, gerar dados de exemplo
-        setTimeout(() => {
-          generateSampleData();
-        }, 500);
       }
-    } else {
-      // Se não houver dados salvos, gerar dados de exemplo
-      setTimeout(() => {
-        generateSampleData();
-      }, 500);
     }
+    
     setIsInitialized(true);
-  }, [generateSampleData]);
+  }, []);
 
   // Salvar dados no localStorage apenas após inicialização
   useEffect(() => {
@@ -654,7 +512,6 @@ export function FinancialProvider({ children }) {
     getMonthlyProjection,
     getYearlyProjection,
     getCategoryTrends,
-    generateSampleData,
     TRANSACTION_TYPES
   }), [
     state,
@@ -674,8 +531,7 @@ export function FinancialProvider({ children }) {
     addSaving,
     updateSaving,
     deleteSaving,
-    updateGoalProgress,
-    generateSampleData
+    updateGoalProgress
   ]);
 
   return (

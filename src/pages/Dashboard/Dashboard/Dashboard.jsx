@@ -4,9 +4,8 @@ import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialConte
 import SummaryCard from '../../../components/Cards/SummaryCard/SummaryCard';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
 import ExpenseChart from '../../../components/Charts/ExpenseChart/ExpenseChart';
-import FloatingButton from '../../../components/FloatingButton/FloatingButton';
 import SimpleTransactionForm from '../../../components/SimpleTransactionForm/SimpleTransactionForm';
-import { TrendingUp, TrendingDown, Wallet, Calendar, ChevronDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Calendar, ChevronDown, Plus } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -298,6 +297,18 @@ const Dashboard = () => {
             Acompanhe suas finanças em tempo real e tome decisões inteligentes
           </p>
         </div>
+      </div>
+
+      {/* Seção de Controles: Botão Adicionar e Dropdown */}
+      <div className="dashboard-controls">
+        <button 
+          className="add-transaction-btn"
+          onClick={handleOpenForm}
+          aria-label="Adicionar transação"
+        >
+          <Plus size={20} />
+          <span>Adicionar Transação</span>
+        </button>
         <div className="period-selector-wrapper">
           <div className="period-selector">
             <Calendar size={18} />
@@ -317,9 +328,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Botão Flutuante */}
-      <FloatingButton onClick={handleOpenForm} />
 
       {/* Widget de Resumo do Dia */}
       {(selectedPeriod === 'today' || selectedPeriod === 'week' || selectedPeriod === 'month') && todayData.count > 0 && (

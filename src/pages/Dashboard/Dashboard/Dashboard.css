@@ -37,7 +37,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   gap: 2rem;
   animation: slideInFromTop 0.8s ease-out;
   flex-wrap: wrap;
@@ -49,6 +49,64 @@
   align-items: center;
   text-align: center;
   gap: 0.5rem;
+  width: 100%;
+}
+
+/* Dashboard Controls Section */
+.dashboard-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  animation: slideInFromTop 0.8s ease-out 0.2s both;
+}
+
+.add-transaction-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--text-inverse);
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.add-transaction-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.add-transaction-btn:hover::before {
+  left: 100%;
+}
+
+.add-transaction-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.add-transaction-btn:active {
+  transform: translateY(0);
+}
+
+.add-transaction-btn svg {
+  flex-shrink: 0;
 }
 
 .dashboard-title {
@@ -94,6 +152,7 @@
 .period-selector-wrapper {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .period-selector {
@@ -712,6 +771,17 @@
     width: 100%;
   }
   
+  .dashboard-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .add-transaction-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .period-selector-wrapper {
     width: 100%;
     justify-content: center;
@@ -719,7 +789,7 @@
   
   .period-selector {
     width: 100%;
-    max-width: 300px;
+    max-width: 100%;
     justify-content: center;
   }
   
