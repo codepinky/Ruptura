@@ -377,6 +377,8 @@
   overflow: hidden;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
   animation: slideInFromBottom 0.8s ease-out 0.8s both;
+  display: flex;
+  flex-direction: column;
 }
 
 .goals-content::before {
@@ -398,11 +400,21 @@
   z-index: 1;
 }
 
+.goal-card > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Grid View */
 .goals-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 2rem;
+  flex: 1;
+}
+
+.goals-grid .empty-state {
+  grid-column: 1 / -1;
 }
 
 .goal-card {
@@ -412,8 +424,10 @@
   padding: 2rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
 }
 
 .goal-card.achieved {
@@ -441,6 +455,8 @@
     rgba(16, 185, 129, 0.05) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .goal-card:hover {
@@ -711,6 +727,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  flex: 1;
 }
 
 .list-header {
@@ -889,6 +906,8 @@
   padding: 4rem 2rem;
   text-align: center;
   color: var(--text-secondary);
+  min-height: 400px;
+  width: 100%;
 }
 
 .empty-state svg {
@@ -928,6 +947,205 @@
 }
 
 .add-goal-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+}
+
+/* Add Money Button */
+.goal-add-money {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--border-color);
+  position: relative;
+  z-index: 2;
+}
+
+.add-money-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.add-money-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+}
+
+.add-money-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Add Money Modal */
+.add-money-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.add-money-modal {
+  background: var(--card-background);
+  border: 2px solid var(--border-color);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: scaleIn 0.4s ease-out;
+  overflow: hidden;
+}
+
+.add-money-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2rem 1.5rem 2rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.add-money-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-modal-btn:hover {
+  background-color: var(--hover-background);
+  color: var(--primary-color);
+}
+
+.add-money-content {
+  padding: 2rem;
+}
+
+.goal-info {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--hover-background);
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+}
+
+.goal-info h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.goal-info .goal-amounts {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.add-money-input-group {
+  margin-bottom: 2rem;
+}
+
+.add-money-input-group label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.add-money-input-group input {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background-color: var(--card-background);
+  color: var(--text-primary);
+}
+
+.add-money-input-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.add-money-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.add-money-actions .cancel-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--hover-background);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-money-actions .cancel-btn:hover {
+  background-color: var(--border-color);
+  transform: translateY(-2px);
+}
+
+.add-money-actions .confirm-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.add-money-actions .confirm-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
 }

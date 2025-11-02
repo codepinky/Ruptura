@@ -29,16 +29,25 @@ const BudgetForm = ({
   // Filtrar apenas categorias de despesas
   const expenseCategories = categories.filter(c => c.type === TRANSACTION_TYPES.EXPENSE);
 
+  // Prevenir scroll do body quando modal está aberto
   useEffect(() => {
     if (isOpen) {
+      // Salvar o scroll atual e desabilitar scroll
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+      
+      return () => {
+        // Restaurar scroll quando modal fechar
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, scrollY);
+      };
     }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [isOpen]);
 
   useEffect(() => {
@@ -189,9 +198,9 @@ const BudgetForm = ({
 
   const modalContent = (
     <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">
+      <div className="budget-form" onClick={(e) => e.stopPropagation()}>
+        <div className="form-header">
+          <h2 className="form-title">
             {budget ? 'Editar Orçamento' : 'Novo Orçamento'}
           </h2>
           <button className="close-button" onClick={handleClose}>
@@ -199,7 +208,7 @@ const BudgetForm = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="budget-form">
+        <form onSubmit={handleSubmit} className="form">
           <div className="form-group">
             <label htmlFor="categoryId" className="form-label">
               <Tag size={20} />
@@ -409,14 +418,14 @@ const BudgetForm = ({
           <div className="form-actions">
             <button 
               type="button" 
-              className="btn btn-secondary" 
+              className="cancel-button" 
               onClick={handleClose}
             >
               Cancelar
             </button>
             <button 
               type="submit" 
-              className="btn btn-primary"
+              className="submit-button"
             >
               {budget ? 'Atualizar' : 'Criar'} Orçamento
             </button>

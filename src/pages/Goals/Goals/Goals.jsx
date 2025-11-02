@@ -15,7 +15,9 @@ import {
   AlertCircle,
   BarChart3,
   Settings,
-  PieChart
+  PieChart,
+  PlusCircle,
+  X
 } from 'lucide-react';
 import './Goals.css';
 
@@ -25,7 +27,8 @@ const Goals = () => {
     addGoal, 
     updateGoal, 
     deleteGoal,
-    getGoalsProgress
+    getGoalsProgress,
+    updateGoalProgress
   } = useFinancial();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +38,8 @@ const Goals = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid, list
+  const [addingMoneyToGoal, setAddingMoneyToGoal] = useState(null);
+  const [amountToAdd, setAmountToAdd] = useState('');
 
   // Calcular progresso das metas
   const goalsProgress = useMemo(() => getGoalsProgress(), [getGoalsProgress]);
@@ -158,6 +163,19 @@ const Goals = () => {
     if (window.confirm('Tem certeza que deseja excluir esta meta?')) {
       deleteGoal(id);
     }
+  };
+
+  const handleAddMoney = () => {
+    if (!amountToAdd || parseFloat(amountToAdd) <= 0) {
+      alert('Por favor, insira um valor válido maior que zero.');
+      return;
+    }
+
+    const goal = addingMoneyToGoal;
+    const newAmount = (goal.currentAmount || 0) + parseFloat(amountToAdd);
+    updateGoal({ ...goal, currentAmount: newAmount });
+    setAddingMoneyToGoal(null);
+    setAmountToAdd('');
   };
 
   const handleSubmitGoal = (goalData) => {
@@ -413,6 +431,17 @@ const Goals = () => {
                         <p>{goal.description}</p>
                       </div>
                     )}
+
+                    <div className="goal-add-money">
+                      <button 
+                        className="add-money-btn"
+                        onClick={() => setAddingMoneyToGoal(goal)}
+                        disabled={goal.progress >= 100}
+                      >
+                        <PlusCircle size={18} />
+                        <span>Adicionar Valor</span>
+                      </button>
+                    </div>
                   </div>
                 );
               })
@@ -549,6 +578,68 @@ const Goals = () => {
         goal={editingGoal}
         onSubmit={handleSubmitGoal}
       />
+
+      {/* Modal para adicionar dinheiro */}
+      {addingMoneyToGoal && (
+        <div className="add-money-modal-overlay" onClick={() => {
+          setAddingMoneyToGoal(null);
+          setAmountToAdd('');
+        }}>
+          <div className="add-money-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="add-money-header">
+              <h3>Adicionar Valor à Meta</h3>
+              <button 
+                className="close-modal-btn"
+                onClick={() => {
+                  setAddingMoneyToGoal(null);
+                  setAmountToAdd('');
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="add-money-content">
+              <div className="goal-info">
+                <h4>{addingMoneyToGoal.name}</h4>
+                <p className="goal-amounts">
+                  {formatCurrency(addingMoneyToGoal.currentAmount)} / {formatCurrency(addingMoneyToGoal.targetAmount)}
+                </p>
+              </div>
+              <div className="add-money-input-group">
+                <label htmlFor="amount">Valor a adicionar (R$)</label>
+                <input
+                  type="number"
+                  id="amount"
+                  value={amountToAdd}
+                  onChange={(e) => setAmountToAdd(e.target.value)}
+                  placeholder="0,00"
+                  step="0.01"
+                  min="0"
+                  autoFocus
+                />
+              </div>
+              <div className="add-money-actions">
+                <button 
+                  className="cancel-btn"
+                  onClick={() => {
+                    setAddingMoneyToGoal(null);
+                    setAmountToAdd('');
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className="confirm-btn"
+                  onClick={handleAddMoney}
+                >
+                  <PlusCircle size={18} />
+                  Adicionar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

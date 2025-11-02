@@ -31,19 +31,25 @@ const CategoryForm = ({
     '👕', '✈️', '🎮', '🏋️', '🎵', '📷', '💻', '☕', '🍕', '🎯'
   ];
 
+  // Prevenir scroll do body quando modal está aberto (mesmo comportamento do GoalForm)
   useEffect(() => {
     if (isOpen) {
-      // Prevenir scroll do body quando modal estiver aberto
+      // Salvar o scroll atual e desabilitar scroll
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
-    } else {
-      // Restaurar scroll do body quando modal fechar
-      document.body.style.overflow = 'unset';
+      
+      return () => {
+        // Restaurar scroll quando modal fechar
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, scrollY);
+      };
     }
-
-    // Cleanup function para restaurar scroll quando componente desmontar
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [isOpen]);
 
   useEffect(() => {
@@ -149,9 +155,9 @@ const CategoryForm = ({
 
   const modalContent = (
     <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">
+      <div className="category-form-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="form-header">
+          <h2 className="form-title">
             {category ? 'Editar Categoria' : 'Nova Categoria'}
           </h2>
           <button className="close-button" onClick={handleClose}>
@@ -159,7 +165,7 @@ const CategoryForm = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="category-form">
+        <form onSubmit={handleSubmit} className="form">
           <div className="form-group">
             <label htmlFor="name" className="form-label">
               <Type size={20} />
@@ -269,14 +275,14 @@ const CategoryForm = ({
           <div className="form-actions">
             <button 
               type="button" 
-              className="btn btn-secondary" 
+              className="cancel-button" 
               onClick={handleClose}
             >
               Cancelar
             </button>
             <button 
               type="submit" 
-              className="btn btn-primary"
+              className="submit-button"
             >
               {category ? 'Atualizar' : 'Criar'} Categoria
             </button>
