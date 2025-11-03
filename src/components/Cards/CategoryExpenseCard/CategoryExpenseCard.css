@@ -17,11 +17,6 @@
   align-items: center;
   padding: 1.5rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.category-header:hover {
-  background-color: var(--bg-hover);
 }
 
 .category-info {

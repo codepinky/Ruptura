@@ -1,6 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import { exportToCSV, exportToPDF } from '../../../utils/exportUtils';
+import { 
+  Save, 
+  Trash2, 
+  Download,
+  FileText,
+  Filter,
+  Calendar,
+  Tag,
+  ArrowUpDown,
+  Layers
+} from 'lucide-react';
 import { listPresets, savePreset, deletePreset, getPreset } from './SaveLoadPresets';
 
 const ALL_FIELDS = ['date', 'description', 'type', 'category', 'amount', 'notes'];
@@ -102,62 +113,114 @@ const ReportBuilder = () => {
 
   return (
     <div className="report-builder">
-      <div className="builder-presets">
-        <select value={selectedPresetId} onChange={(e) => applyPreset(e.target.value)} className="filter-select">
-          <option value="">Carregar preset…</option>
-          {presets.map(p => (
-            <option value={p.id} key={p.id}>{p.name}</option>
-          ))}
-        </select>
-        <input className="filter-input" placeholder="Nome do preset" value={presetName} onChange={(e) => setPresetName(e.target.value)} />
-        <button className="export-button" onClick={saveCurrentAsPreset}>Salvar</button>
-        <button className="export-button" onClick={removePreset} disabled={!selectedPresetId}>Excluir</button>
+      <div className="builder-presets-card">
+        <h3 className="builder-section-title">
+          <Save size={20} />
+          <span>Presets</span>
+        </h3>
+        <div className="builder-presets">
+          <div className="filter-group">
+            <FileText size={18} className="filter-icon" />
+            <select value={selectedPresetId} onChange={(e) => applyPreset(e.target.value)} className="filter-select">
+              <option value="">Carregar preset…</option>
+              {presets.map(p => (
+                <option value={p.id} key={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <input className="filter-input" placeholder="Nome do preset" value={presetName} onChange={(e) => setPresetName(e.target.value)} />
+          </div>
+          <button className="export-button" onClick={saveCurrentAsPreset}>
+            <Save size={16} />
+            <span>Salvar</span>
+          </button>
+          <button className="export-button" onClick={removePreset} disabled={!selectedPresetId}>
+            <Trash2 size={16} />
+            <span>Excluir</span>
+          </button>
+        </div>
       </div>
 
-      <div className="builder-filters">
-        <div className="field-group">
-          {ALL_FIELDS.map(f => (
-            <label key={f} className="field-checkbox">
-              <input
-                type="checkbox"
-                checked={fields.includes(f)}
-                onChange={(e) => {
-                  if (e.target.checked) setFields(prev => [...prev, f]);
-                  else setFields(prev => prev.filter(x => x !== f));
-                }}
-              />
-              <span>{f}</span>
-            </label>
-          ))}
-        </div>
+      <div className="builder-filters-card">
+        <h3 className="builder-section-title">
+          <Filter size={20} />
+          <span>Campos e Filtros</span>
+        </h3>
+        <div className="builder-filters">
+          <div className="field-group">
+            {ALL_FIELDS.map(f => (
+              <label key={f} className="field-checkbox">
+                <input
+                  type="checkbox"
+                  checked={fields.includes(f)}
+                  onChange={(e) => {
+                    if (e.target.checked) setFields(prev => [...prev, f]);
+                    else setFields(prev => prev.filter(x => x !== f));
+                  }}
+                />
+                <span>{f}</span>
+              </label>
+            ))}
+          </div>
 
-        <select className="filter-select" value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="all">Tipo: Todos</option>
-          <option value={TRANSACTION_TYPES.INCOME}>Receitas</option>
-          <option value={TRANSACTION_TYPES.EXPENSE}>Despesas</option>
-        </select>
-        <select className="filter-select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-          <option value="all">Categoria: Todas</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <input className="filter-input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-        <input className="filter-input" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-        <select className="filter-select" value={groupBy} onChange={(e) => setGroupBy(e.target.value)}>
-          <option value="none">Sem agrupamento</option>
-          <option value="month">Agrupar por mês</option>
-          <option value="category">Agrupar por categoria</option>
-          <option value="type">Agrupar por tipo</option>
-        </select>
-        <select className="filter-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          <option value="date_desc">Ordenar: Data desc</option>
-          <option value="date_asc">Ordenar: Data asc</option>
-          <option value="amount_desc">Ordenar: Valor desc</option>
-          <option value="amount_asc">Ordenar: Valor asc</option>
-        </select>
+          <div className="filter-group">
+            <Filter size={18} className="filter-icon" />
+            <select className="filter-select" value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="all">Tipo: Todos</option>
+              <option value={TRANSACTION_TYPES.INCOME}>Receitas</option>
+              <option value={TRANSACTION_TYPES.EXPENSE}>Despesas</option>
+            </select>
+          </div>
 
-        <div className="export-dropdown">
-          <button className="export-button" onClick={() => exportCurrent('csv')}>Exportar CSV</button>
-          <button className="export-button" onClick={() => exportCurrent('pdf')}>Exportar PDF</button>
+          <div className="filter-group">
+            <Tag size={18} className="filter-icon" />
+            <select className="filter-select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+              <option value="all">Categoria: Todas</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <Calendar size={18} className="filter-icon" />
+            <input className="filter-input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          </div>
+
+          <div className="filter-group">
+            <Calendar size={18} className="filter-icon" />
+            <input className="filter-input" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          </div>
+
+          <div className="filter-group">
+            <Layers size={18} className="filter-icon" />
+            <select className="filter-select" value={groupBy} onChange={(e) => setGroupBy(e.target.value)}>
+              <option value="none">Sem agrupamento</option>
+              <option value="month">Agrupar por mês</option>
+              <option value="category">Agrupar por categoria</option>
+              <option value="type">Agrupar por tipo</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <ArrowUpDown size={18} className="filter-icon" />
+            <select className="filter-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="date_desc">Ordenar: Data desc</option>
+              <option value="date_asc">Ordenar: Data asc</option>
+              <option value="amount_desc">Ordenar: Valor desc</option>
+              <option value="amount_asc">Ordenar: Valor asc</option>
+            </select>
+          </div>
+
+          <div className="export-dropdown">
+            <button className="export-button" onClick={() => exportCurrent('csv')}>
+              <Download size={16} />
+              <span>Exportar CSV</span>
+            </button>
+            <button className="export-button" onClick={() => exportCurrent('pdf')}>
+              <FileText size={16} />
+              <span>Exportar PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -1,6 +1,19 @@
 import React, { useMemo, useState } from 'react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import { exportToCSV, exportToPDF } from '../../../utils/exportUtils';
+import { 
+  Search, 
+  Filter, 
+  Calendar, 
+  Tag,
+  Download,
+  FileText,
+  Table2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
+} from 'lucide-react';
 import PivotTable from './PivotTable';
 
 const Explorer = ({ globalRange }) => {
@@ -49,36 +62,78 @@ const Explorer = ({ globalRange }) => {
 
   return (
     <div className="explorer">
-      <div className="explorer-filters">
-        <input
-          className="filter-input"
-          placeholder="Buscar descrição/notas"
-          value={search}
-          onChange={(e) => { setPage(1); setSearch(e.target.value); }}
-        />
-        <select className="filter-select" value={type} onChange={(e) => { setPage(1); setType(e.target.value); }}>
-          <option value="all">Tipo: Todos</option>
-          <option value={TRANSACTION_TYPES.INCOME}>Apenas Receitas</option>
-          <option value={TRANSACTION_TYPES.EXPENSE}>Apenas Despesas</option>
-        </select>
-        <select className="filter-select" value={categoryId} onChange={(e) => { setPage(1); setCategoryId(e.target.value); }}>
-          <option value="all">Categoria: Todas</option>
-          {categories.map(c => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
-        <input className="filter-input" type="date" value={startDate} onChange={(e) => { setPage(1); setStartDate(e.target.value); }} />
-        <input className="filter-input" type="date" value={endDate} onChange={(e) => { setPage(1); setEndDate(e.target.value); }} />
+      <div className="explorer-filters-card">
+        <div className="explorer-filters">
+          <div className="filter-group">
+            <Search size={18} className="filter-icon" />
+            <input
+              className="filter-input"
+              placeholder="Buscar descrição/notas"
+              value={search}
+              onChange={(e) => { setPage(1); setSearch(e.target.value); }}
+            />
+          </div>
 
-        <div className="export-dropdown">
-          <button className="export-button" onClick={() => exportToCSV(filtered, categories)}>Exportar CSV</button>
-          <button className="export-button" onClick={() => exportToPDF(filtered, categories)}>Exportar PDF</button>
+          <div className="filter-group">
+            <Filter size={18} className="filter-icon" />
+            <select className="filter-select" value={type} onChange={(e) => { setPage(1); setType(e.target.value); }}>
+              <option value="all">Tipo: Todos</option>
+              <option value={TRANSACTION_TYPES.INCOME}>Apenas Receitas</option>
+              <option value={TRANSACTION_TYPES.EXPENSE}>Apenas Despesas</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <Tag size={18} className="filter-icon" />
+            <select className="filter-select" value={categoryId} onChange={(e) => { setPage(1); setCategoryId(e.target.value); }}>
+              <option value="all">Categoria: Todas</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <Calendar size={18} className="filter-icon" />
+            <input 
+              className="filter-input" 
+              type="date" 
+              value={startDate} 
+              onChange={(e) => { setPage(1); setStartDate(e.target.value); }}
+              placeholder="Data inicial"
+            />
+          </div>
+
+          <div className="filter-group">
+            <Calendar size={18} className="filter-icon" />
+            <input 
+              className="filter-input" 
+              type="date" 
+              value={endDate} 
+              onChange={(e) => { setPage(1); setEndDate(e.target.value); }}
+              placeholder="Data final"
+            />
+          </div>
         </div>
 
-        <label className="pivot-toggle">
-          <input type="checkbox" checked={showPivot} onChange={(e) => setShowPivot(e.target.checked)} />
-          <span>Mostrar Pivot</span>
-        </label>
+        <div className="explorer-actions">
+          <div className="export-dropdown">
+            <button className="export-button" onClick={() => exportToCSV(filtered, categories)}>
+              <Download size={16} />
+              <span>Exportar CSV</span>
+            </button>
+            <button className="export-button" onClick={() => exportToPDF(filtered, categories)}>
+              <FileText size={16} />
+              <span>Exportar PDF</span>
+            </button>
+          </div>
+
+          <label className="pivot-toggle">
+            <input type="checkbox" checked={showPivot} onChange={(e) => setShowPivot(e.target.checked)} />
+            <Table2 size={16} />
+            <span>Mostrar Pivot</span>
+          </label>
+        </div>
       </div>
 
       <div className="table-responsive">
@@ -118,21 +173,64 @@ const Explorer = ({ globalRange }) => {
         </table>
       </div>
 
-      <div className="pagination">
-        <button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p-1))}>Anterior</button>
-        <span>Página {page} de {totalPages}</span>
-        <button disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p+1))}>Próxima</button>
-        <select value={pageSize} onChange={(e) => { setPage(1); setPageSize(parseInt(e.target.value)); }}>
-          <option value={10}>10</option>
-          <option value={20}>20</option>
-          <option value={50}>50</option>
-        </select>
+      <div className="pagination-card">
+        <div className="pagination">
+          <button 
+            className="pagination-btn" 
+            disabled={page === 1} 
+            onClick={() => setPage(1)}
+            title="Primeira página"
+          >
+            <ChevronsLeft size={18} />
+          </button>
+          <button 
+            className="pagination-btn" 
+            disabled={page === 1} 
+            onClick={() => setPage(p => Math.max(1, p-1))}
+            title="Página anterior"
+          >
+            <ChevronLeft size={18} />
+            <span>Anterior</span>
+          </button>
+          <span className="pagination-info">Página {page} de {totalPages}</span>
+          <button 
+            className="pagination-btn" 
+            disabled={page === totalPages} 
+            onClick={() => setPage(p => Math.min(totalPages, p+1))}
+            title="Próxima página"
+          >
+            <span>Próxima</span>
+            <ChevronRight size={18} />
+          </button>
+          <button 
+            className="pagination-btn" 
+            disabled={page === totalPages} 
+            onClick={() => setPage(totalPages)}
+            title="Última página"
+          >
+            <ChevronsRight size={18} />
+          </button>
+          <select 
+            className="pagination-select"
+            value={pageSize} 
+            onChange={(e) => { setPage(1); setPageSize(parseInt(e.target.value)); }}
+          >
+            <option value={10}>10 por página</option>
+            <option value={20}>20 por página</option>
+            <option value={50}>50 por página</option>
+          </select>
+        </div>
       </div>
 
       {showPivot && (
-        <div className="pivot-section">
-          <h3 className="chart-title">Pivot</h3>
-          <PivotTable data={filtered} />
+        <div className="pivot-section-card">
+          <div className="pivot-section">
+            <h3 className="chart-title">
+              <Table2 size={20} />
+              <span>Pivot Table</span>
+            </h3>
+            <PivotTable data={filtered} />
+          </div>
         </div>
       )}
     </div>

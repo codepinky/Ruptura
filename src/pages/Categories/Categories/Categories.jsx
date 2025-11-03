@@ -234,6 +234,21 @@ const Categories = () => {
           <div className="categories-grid">
             {filteredCategories.map(category => (
               <div key={category.id} className="category-card">
+                <div className="category-actions">
+                  <button 
+                    className="action-btn edit"
+                    onClick={() => setEditingCategory(category)}
+                  >
+                    <Edit3 size={16} />
+                  </button>
+                  <button 
+                    className="action-btn delete"
+                    onClick={() => handleDeleteCategory(category.id)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                
                 <div className="category-header">
                   <div 
                     className="category-color" 
@@ -244,20 +259,6 @@ const Categories = () => {
                     <p className="category-type">
                       {category.type === TRANSACTION_TYPES.INCOME ? 'Receita' : 'Despesa'}
                     </p>
-                  </div>
-                  <div className="category-actions">
-                    <button 
-                      className="action-btn edit"
-                      onClick={() => setEditingCategory(category)}
-                    >
-                      <Edit3 size={16} />
-                    </button>
-                    <button 
-                      className="action-btn delete"
-                      onClick={() => handleDeleteCategory(category.id)}
-                    >
-                      <Trash2 size={16} />
-                    </button>
                   </div>
                 </div>
                 

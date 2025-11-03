@@ -2,6 +2,14 @@ import React, { useMemo } from 'react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import ExpenseChart from '../../../components/Charts/ExpenseChart/ExpenseChart';
 import BalanceChart from '../../../components/Charts/BalanceChart/BalanceChart';
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  Wallet,
+  ArrowUpRight,
+  ArrowDownRight
+} from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const ExecutiveOverview = ({ selectedRange }) => {
@@ -138,18 +146,46 @@ const ExecutiveOverview = ({ selectedRange }) => {
   const yearly = useMemo(() => getYearlyProjection(), [getYearlyProjection]);
   const monthly = useMemo(() => getMonthlyProjection(1), [getMonthlyProjection]);
 
+  const getKpiIcon = (key) => {
+    switch(key) {
+      case 'income': return TrendingUp;
+      case 'expense': return TrendingDown;
+      case 'balance': return Wallet;
+      default: return DollarSign;
+    }
+  };
+
   return (
     <>
-      <p className="mini-summary">{miniSummary}</p>
+      <div className="mini-summary-card">
+        <p className="mini-summary">{miniSummary}</p>
+      </div>
 
       <div className="kpi-strip">
-        {kpis.map((kpi) => (
-          <div key={kpi.key} className={`kpi-card ${kpi.key}`}>
-            <span className="kpi-label">{kpi.label}</span>
-            <span className={`kpi-value ${kpi.key}`}>{formatCurrency(kpi.value)}</span>
-            <span className={`kpi-change ${kpi.change >= 0 ? 'up' : 'down'}`}>{kpi.change >= 0 ? '+' : ''}{kpi.change.toFixed(1)}%</span>
-          </div>
-        ))}
+        {kpis.map((kpi) => {
+          const IconComponent = getKpiIcon(kpi.key);
+          return (
+            <div key={kpi.key} className={`kpi-card ${kpi.key}`}>
+              <div className="kpi-icon-wrapper">
+                <IconComponent size={24} />
+              </div>
+              <div className="kpi-content">
+                <span className="kpi-label">{kpi.label}</span>
+                <span className={`kpi-value ${kpi.key}`}>{formatCurrency(kpi.value)}</span>
+                <div className={`kpi-change-wrapper ${kpi.change >= 0 ? 'up' : 'down'}`}>
+                  {kpi.change >= 0 ? (
+                    <ArrowUpRight size={14} />
+                  ) : (
+                    <ArrowDownRight size={14} />
+                  )}
+                  <span className={`kpi-change ${kpi.change >= 0 ? 'up' : 'down'}`}>
+                    {kpi.change >= 0 ? '+' : ''}{kpi.change.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="projections-grid">

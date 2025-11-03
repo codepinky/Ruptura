@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { 
+  BarChart3, 
+  Search, 
+  FileText, 
+  Calendar,
+  TrendingUp,
+  Settings
+} from 'lucide-react';
 import ExecutiveOverview from '../components/ExecutiveOverview';
 import Explorer from '../components/Explorer';
 import ReportBuilder from '../components/ReportBuilder';
@@ -22,11 +30,19 @@ const Reports = () => {
 
   return (
     <div className="reports-page">
-      <div className="page-header">
-        <h1 className="page-title">Relatórios</h1>
-        <p className="page-subtitle">Análise detalhada das suas finanças</p>
-        <div className="reports-controls">
-          <div className="period-selector">
+      {/* Header Section */}
+      <div className="reports-header">
+        <div className="header-content">
+          <h1 className="page-title">Relatórios</h1>
+          <p className="page-subtitle">Análise detalhada das suas finanças</p>
+        </div>
+      </div>
+
+      {/* Controls Section */}
+      <div className="reports-controls">
+        <div className="controls-section controls-period">
+          <div className="period-selector-wrapper">
+            <Calendar size={20} className="period-icon" />
             <select 
               value={selectedRange}
               onChange={(e) => setSelectedRange(e.target.value)}
@@ -46,33 +62,39 @@ const Reports = () => {
           className={`tab-button ${currentTab === 'executive' ? 'active' : ''}`}
           onClick={() => switchTab('executive')}
         >
-          Visão Geral
+          <TrendingUp size={18} />
+          <span>Visão Geral</span>
         </button>
         <button 
           className={`tab-button ${currentTab === 'explorer' ? 'active' : ''}`}
           onClick={() => switchTab('explorer')}
         >
-          Análise
+          <Search size={18} />
+          <span>Análise</span>
         </button>
         <button 
           className={`tab-button ${currentTab === 'builder' ? 'active' : ''}`}
           onClick={() => switchTab('builder')}
         >
-          Relatório Personalizado
+          <FileText size={18} />
+          <span>Relatório Personalizado</span>
         </button>
       </div>
 
-      {currentTab === 'executive' && (
-        <ExecutiveOverview selectedRange={selectedRange} />
-      )}
+      {/* Tab Content */}
+      <div className="reports-content">
+        {currentTab === 'executive' && (
+          <ExecutiveOverview selectedRange={selectedRange} />
+        )}
 
-      {currentTab === 'explorer' && (
-        <Explorer globalRange={selectedRange} />
-      )}
+        {currentTab === 'explorer' && (
+          <Explorer globalRange={selectedRange} />
+        )}
 
-      {currentTab === 'builder' && (
-        <ReportBuilder />
-      )}
+        {currentTab === 'builder' && (
+          <ReportBuilder />
+        )}
+      </div>
     </div>
   );
 };
