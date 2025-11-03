@@ -37,6 +37,24 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
       // Prevenir scroll do body quando modal estiver aberto
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
+      
+      // Foco inicial no primeiro campo (acessibilidade)
+      const firstInput = document.querySelector('.simple-form input[type="text"]');
+      if (firstInput) {
+        setTimeout(() => firstInput.focus(), 100);
+      }
+      
+      // ESC para fechar
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+      
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+      };
     } else {
       // Restaurar scroll do body quando modal fechar
       document.body.style.overflow = '';
@@ -48,7 +66,7 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -125,8 +143,13 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
       <div className={`simple-form ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <h2>Nova Transação</h2>
-          <button className="close-btn" onClick={onClose}>
-            <X size={24} />
+          <button 
+            className="close-btn" 
+            onClick={onClose}
+            aria-label="Fechar formulário"
+            type="button"
+          >
+            <X size={24} aria-hidden="true" />
           </button>
         </div>
         
@@ -143,8 +166,10 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
               onChange={handleChange}
               placeholder="Ex: Supermercado, Salário..."
               className={errors.description ? 'error' : ''}
+              aria-describedby={errors.description ? 'description-error' : undefined}
+              autoComplete="off"
             />
-            {errors.description && <span className="error">{errors.description}</span>}
+            {errors.description && <span id="description-error" className="error" role="alert">{errors.description}</span>}
           </div>
 
           <div className="form-group">
@@ -160,9 +185,11 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
               placeholder="0,00"
               step="0.01"
               min="0"
+              inputMode="decimal"
               className={errors.amount ? 'error' : ''}
+              aria-describedby={errors.amount ? 'amount-error' : undefined}
             />
-            {errors.amount && <span className="error">{errors.amount}</span>}
+            {errors.amount && <span id="amount-error" className="error" role="alert">{errors.amount}</span>}
           </div>
 
           <div className="form-group">
@@ -190,6 +217,7 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
               value={formData.categoryId}
               onChange={handleChange}
               className={errors.categoryId ? 'error' : ''}
+              aria-describedby={errors.categoryId ? 'category-error' : undefined}
             >
               <option value="">Selecione uma categoria</option>
               {filteredCategories.map(category => (
@@ -198,7 +226,7 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
                 </option>
               ))}
             </select>
-            {errors.categoryId && <span className="error">{errors.categoryId}</span>}
+            {errors.categoryId && <span id="category-error" className="error" role="alert">{errors.categoryId}</span>}
           </div>
 
           <div className="form-group">
@@ -212,8 +240,9 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
               value={formData.date}
               onChange={handleChange}
               className={errors.date ? 'error' : ''}
+              aria-describedby={errors.date ? 'date-error' : undefined}
             />
-            {errors.date && <span className="error">{errors.date}</span>}
+            {errors.date && <span id="date-error" className="error" role="alert">{errors.date}</span>}
           </div>
 
           <div className="form-group">

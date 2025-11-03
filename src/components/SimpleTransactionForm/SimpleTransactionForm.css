@@ -6,23 +6,49 @@
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   z-index: 2000;
-  padding: 1rem;
-  overflow: hidden; /* Previne scroll */
-  touch-action: none; /* Previne gestos de toque */
+  padding: var(--space-4);
+  padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  padding-left: calc(var(--space-4) + env(safe-area-inset-left, 0px));
+  padding-right: calc(var(--space-4) + env(safe-area-inset-right, 0px));
+  overflow: hidden;
+  touch-action: none;
+  isolation: isolate;
+  contain: layout style paint;
+}
+
+@media (min-width: 768px) {
+  .modal-overlay {
+    align-items: center;
+  }
 }
 
 .simple-form {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
+  max-width: 100%;
+  max-height: 95dvh;
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   border: 1px solid #e5e7eb;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  contain: layout style paint;
+  isolation: isolate;
+}
+
+@media (min-width: 768px) {
+  .simple-form {
+    border-radius: var(--radius-2xl);
+    max-width: 500px;
+    max-height: 90dvh;
+  }
 }
 
 /* Tema escuro */
@@ -36,16 +62,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 1.5rem 0;
+  padding: var(--space-5) var(--space-5) 0;
   border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-5);
 }
 
 .form-header h2 {
-  font-size: 1.25rem;
+  font-size: clamp(1.1rem, 3vw + 0.5rem, 1.25rem);
   font-weight: 600;
   color: #111827;
   margin: 0;
+  line-height: var(--line-height-tight);
 }
 
 /* Tema escuro - cabeçalho */
@@ -61,15 +88,27 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 8px;
+  padding: var(--space-2);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
   color: #6b7280;
   transition: all 0.2s ease;
 }
 
-.close-btn:hover {
-  background-color: #f3f4f6;
-  color: #374151;
+@media (prefers-reduced-motion: no-preference) {
+  .close-btn:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+  }
+}
+
+.close-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* Tema escuro - botão fechar */
@@ -83,21 +122,22 @@
 }
 
 .form-content {
-  padding: 0 1.5rem 1.5rem;
+  padding: 0 var(--space-5) var(--space-5);
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-5);
 }
 
 .form-group label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: var(--space-2);
+  font-size: clamp(0.8rem, 1vw + 0.4rem, 0.875rem);
   font-weight: 500;
   color: #374151;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-tight);
 }
 
 /* Tema escuro - labels */
@@ -109,12 +149,20 @@
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 0.75rem;
+  padding: var(--space-3);
+  min-height: 44px;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  font-size: clamp(0.9rem, 1.2vw + 0.5rem, 0.875rem);
   transition: all 0.2s ease;
   box-sizing: border-box;
+  line-height: var(--line-height-base);
+}
+
+.form-group textarea {
+  min-height: auto;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
 }
 
 .form-group input:focus,
@@ -123,6 +171,13 @@
   outline: none;
   border-color: #10B981;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.form-group input:focus-visible,
+.form-group select:focus-visible,
+.form-group textarea:focus-visible {
+  outline: 2px solid #10B981;
+  outline-offset: 2px;
 }
 
 /* Tema escuro - inputs */
@@ -148,14 +203,59 @@
 
 .form-group textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: clamp(80px, 10vh, 120px);
+}
+
+/* Container para isolar o date picker */
+.form-group {
+  position: relative;
+  contain: layout;
+  width: 100%;
+}
+
+/* Input de data - prevenir vazamento do date picker */
+.form-group input[type="date"] {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding-right: calc(var(--space-3) + 28px);
+  text-overflow: ellipsis;
+}
+
+/* Garantir que o date picker do navegador fique contido */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: var(--space-1);
+  margin-left: var(--space-2);
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+/* Firefox */
+.form-group input[type="date"]::-moz-calendar-picker-indicator {
+  cursor: pointer;
+  padding: var(--space-1);
+}
+
+/* Prevenir que o date picker vaze do modal */
+.simple-form input[type="date"]:focus {
+  position: relative;
+  z-index: 1;
+  outline-offset: -2px;
 }
 
 .error {
   color: #ef4444;
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
+  font-size: clamp(0.7rem, 0.8vw + 0.3rem, 0.75rem);
+  margin-top: var(--space-1);
   display: block;
+  line-height: var(--line-height-tight);
 }
 
 /* Tema escuro - mensagens de erro */
@@ -165,26 +265,43 @@
 
 .form-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+@media (min-width: 480px) {
+  .form-actions {
+    flex-direction: row;
+    gap: var(--space-4);
+  }
 }
 
 .cancel-btn {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: var(--space-3) var(--space-4);
+  min-height: 44px;
   border: 1px solid #d1d5db;
   background: white;
   color: #374151;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  font-size: clamp(0.9rem, 1.2vw + 0.5rem, 0.875rem);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  line-height: var(--line-height-tight);
 }
 
-.cancel-btn:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
+@media (prefers-reduced-motion: no-preference) {
+  .cancel-btn:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+  }
+}
+
+.cancel-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* Tema escuro - botão cancelar */
@@ -201,60 +318,87 @@
 
 .submit-btn {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: var(--space-3) var(--space-4);
+  min-height: 44px;
   border: none;
   background: linear-gradient(135deg, #10B981, #059669);
   color: white;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  font-size: clamp(0.9rem, 1.2vw + 0.5rem, 0.875rem);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  line-height: var(--line-height-tight);
 }
 
-.submit-btn:hover {
-  background: linear-gradient(135deg, #059669, #047857);
-  transform: translateY(-1px);
+@media (prefers-reduced-motion: no-preference) {
+  .submit-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-1px);
+  }
 }
 
 .submit-btn:active {
   transform: translateY(0);
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
+.submit-btn:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* Responsividade Mobile */
+@media (max-width: 479px) {
   .modal-overlay {
-    padding: 0.5rem;
+    padding: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    align-items: flex-end;
     overflow: hidden;
-    touch-action: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
   }
   
   .simple-form {
-    max-height: 95vh;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    max-height: 100dvh;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px));
     overflow-y: auto;
-    overflow-x: hidden; /* Previne scroll horizontal */
-    touch-action: pan-y; /* Permite apenas scroll vertical */
+    overflow-x: hidden;
+  }
+  
+  /* Em mobile, garantir que date picker não vaze */
+  .form-group input[type="date"] {
+    font-size: clamp(1rem, 4vw, 1rem);
   }
   
   .form-header {
-    padding: 1rem 1rem 0;
+    padding: var(--space-4) var(--space-4) 0;
+    position: sticky;
+    top: 0;
+    background: inherit;
+    z-index: 10;
+    margin-bottom: var(--space-4);
   }
   
   .form-content {
-    padding: 0 1rem 1rem;
+    padding: 0 var(--space-4) var(--space-4);
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .modal-overlay {
+    padding: var(--space-4);
+    align-items: center;
   }
   
-  .form-actions {
-    flex-direction: column;
+  .simple-form {
+    max-height: 95dvh;
   }
   
-  .cancel-btn,
-  .submit-btn {
-    flex: none;
+  .form-header {
+    padding: var(--space-4) var(--space-5) 0;
+  }
+  
+  .form-content {
+    padding: 0 var(--space-5) var(--space-5);
   }
 }

@@ -5,6 +5,7 @@ import SummaryCard from '../../../components/Cards/SummaryCard/SummaryCard';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
 import ExpenseChart from '../../../components/Charts/ExpenseChart/ExpenseChart';
 import SimpleTransactionForm from '../../../components/SimpleTransactionForm/SimpleTransactionForm';
+import FloatingButton from '../../../components/FloatingButton/FloatingButton';
 import { TrendingUp, TrendingDown, Wallet, Calendar, ChevronDown, Plus } from 'lucide-react';
 import './Dashboard.css';
 
@@ -485,6 +486,9 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* FloatingButton */}
+      <FloatingButton onClick={handleOpenForm} />
 
       {/* Formulário de Transação */}
       <SimpleTransactionForm
