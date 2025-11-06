@@ -135,20 +135,42 @@
 }
 
 /* Prevenir rolagem horizontal */
-html, body {
+html {
   overflow-x: hidden;
   max-width: 100vw;
+  height: 100%;
+  /* Garantir que o html também tenha background para cobrir safe areas */
+  background-color: var(--bg-secondary);
 }
 
-/* Aplicar variáveis ao body */
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height - melhor para mobile */
   background-color: var(--bg-secondary);
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
   width: 100%;
   max-width: 100vw;
+  overflow-x: hidden;
+  /* Garantir que o background cubra toda a área, incluindo safe areas */
+  position: relative;
+}
+
+/* Pseudo-elemento fixo para garantir background completo em safe areas (notch, barras) */
+body::before {
+  content: '';
+  position: fixed;
+  top: calc(-1 * env(safe-area-inset-top, 0px));
+  left: calc(-1 * env(safe-area-inset-left, 0px));
+  right: calc(-1 * env(safe-area-inset-right, 0px));
+  bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+  background-color: var(--bg-secondary);
+  z-index: -1;
+  /* Garantir que cubra toda a viewport incluindo safe areas */
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
 }
 
 a {

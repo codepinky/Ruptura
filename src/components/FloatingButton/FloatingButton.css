@@ -1,7 +1,9 @@
 .floating-button {
   position: fixed !important;
   bottom: 2rem;
+  bottom: calc(2rem + env(safe-area-inset-bottom, 0px)); /* Respeitar safe area do bottom */
   right: 2rem !important;
+  right: calc(2rem + env(safe-area-inset-right, 0px)) !important; /* Respeitar safe area lateral */
   left: auto !important;
   width: 70px;
   height: 70px;
@@ -41,7 +43,9 @@
   .floating-button {
     display: flex !important; /* Mostrar apenas no mobile */
     bottom: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); /* Respeitar safe area do bottom */
     right: 1rem !important;
+    right: calc(1rem + env(safe-area-inset-right, 0px)) !important; /* Respeitar safe area lateral */
     left: auto !important;
     width: 65px;
     height: 65px;
@@ -51,7 +55,9 @@
 @media (max-width: 480px) {
   .floating-button {
     bottom: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); /* Respeitar safe area do bottom */
     right: 1rem !important;
+    right: calc(1rem + env(safe-area-inset-right, 0px)) !important; /* Respeitar safe area lateral */
     left: auto !important;
     width: 65px;
     height: 65px;

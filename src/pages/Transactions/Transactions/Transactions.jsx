@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Search, TrendingUp, TrendingDown, Wallet, Filter, ArrowUpDown, ArrowUp, ArrowDown, X, Calendar, DollarSign, Plus, CheckSquare, Square, Trash2, Download, ChevronDown } from 'lucide-react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
@@ -26,6 +26,8 @@ const Transactions = () => {
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [sortField, setSortField] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
+  const filtersPanelRef = useRef(null);
+  const [isControlsExpanded, setIsControlsExpanded] = useState(false);
 
   // Debounce para busca
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
@@ -53,6 +55,49 @@ const Transactions = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isExportMenuOpen]);
+
+  // Fechar painel de filtros com ESC, bloquear scroll do body e gerenciar foco
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        if (isFiltersExpanded) {
+          setIsFiltersExpanded(false);
+        } else if (isControlsExpanded) {
+          setIsControlsExpanded(false);
+        }
+      }
+    };
+
+    const isAnyPanelOpen = isFiltersExpanded || isControlsExpanded;
+
+    if (isAnyPanelOpen) {
+      document.addEventListener('keydown', handleEscape);
+      // Bloquear scroll do body
+      document.body.style.overflow = 'hidden';
+      
+      if (isFiltersExpanded) {
+        // Focar no painel de filtros para acessibilidade
+        setTimeout(() => {
+          if (filtersPanelRef.current) {
+            const firstInput = filtersPanelRef.current.querySelector('input, select, button');
+            if (firstInput) {
+              firstInput.focus();
+            }
+          }
+        }, 100);
+      }
+    } else {
+      // Restaurar scroll do body
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      if (!isFiltersExpanded && !isControlsExpanded) {
+        document.body.style.overflow = '';
+      }
+    };
+  }, [isFiltersExpanded, isControlsExpanded]);
 
   // Contar filtros ativos
   const activeFiltersCount = useMemo(() => {
@@ -544,7 +589,177 @@ const Transactions = () => {
         </div>
       )}
 
-      {/* Barra de Controles Unificada (Filtros + Ordenação) */}
+      {/* Botão Compacto Mobile */}
+      <button 
+        className="controls-mobile-toggle"
+        onClick={() => setIsControlsExpanded(!isControlsExpanded)}
+        aria-label={isControlsExpanded ? "Fechar controles" : "Abrir controles"}
+        aria-expanded={isControlsExpanded}
+      >
+        <div className="controls-mobile-toggle-content">
+          <div className="controls-mobile-info">
+            <span className="controls-mobile-count">{filteredTransactions.length}</span>
+            <span className="controls-mobile-label">transações</span>
+          </div>
+          <ChevronDown 
+            size={20} 
+            className={`controls-mobile-chevron ${isControlsExpanded ? 'expanded' : ''}`}
+          />
+        </div>
+      </button>
+
+      {/* Painel de Controles Expansível Mobile */}
+      {isControlsExpanded && (
+        <>
+          <div 
+            className="controls-mobile-overlay" 
+            onClick={() => setIsControlsExpanded(false)}
+            aria-label="Fechar controles"
+          />
+          <div className="controls-mobile-panel">
+            <div className="controls-mobile-panel-header">
+              <h3>Controles</h3>
+              <button 
+                className="controls-mobile-close"
+                onClick={() => setIsControlsExpanded(false)}
+                aria-label="Fechar"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="controls-mobile-panel-content">
+              {/* Conteúdo da controls-bar aqui */}
+              <div className="controls-mobile-search">
+                <div className="search-wrapper">
+                  <Search size={18} className="search-icon-controls" />
+                  <input
+                    type="text"
+                    placeholder="Buscar transações..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="search-input-controls"
+                  />
+                  {searchQuery && (
+                    <button 
+                      className="clear-search-button"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="controls-mobile-actions">
+                <button 
+                  className="filter-toggle-button-new"
+                  onClick={() => {
+                    setIsFiltersExpanded(true);
+                    setIsControlsExpanded(false);
+                  }}
+                >
+                  <Filter size={16} />
+                  <span>Filtros</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="filter-badge-new">{activeFiltersCount}</span>
+                  )}
+                </button>
+
+                <button 
+                  className={`selection-mode-button ${isSelectionMode ? 'active' : ''}`}
+                  onClick={() => {
+                    setIsSelectionMode(!isSelectionMode);
+                    if (!isSelectionMode) {
+                      setSelectedTransactions(new Set());
+                    }
+                    setIsControlsExpanded(false);
+                  }}
+                >
+                  {isSelectionMode ? <CheckSquare size={16} /> : <Square size={16} />}
+                  <span>Selecionar</span>
+                </button>
+
+                {isSelectionMode && selectedTransactions.size > 0 && (
+                  <button 
+                    className="bulk-delete-button"
+                    onClick={() => {
+                      handleBulkDelete();
+                      setIsControlsExpanded(false);
+                    }}
+                  >
+                    <Trash2 size={16} />
+                    <span>Excluir ({selectedTransactions.size})</span>
+                  </button>
+                )}
+
+                <div className={`export-dropdown ${isExportMenuOpen ? 'active' : ''}`}>
+                  <button 
+                    className="export-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsExportMenuOpen(!isExportMenuOpen);
+                    }}
+                  >
+                    <Download size={16} />
+                    <span>Exportar</span>
+                    <ChevronDown size={14} />
+                  </button>
+                  {isExportMenuOpen && (
+                    <div className="export-menu">
+                      <button 
+                        className="export-menu-item"
+                        onClick={() => {
+                          exportToCSV(filteredTransactions, categories);
+                          setIsExportMenuOpen(false);
+                          setIsControlsExpanded(false);
+                        }}
+                      >
+                        <span>Exportar CSV</span>
+                      </button>
+                      <button 
+                        className="export-menu-item"
+                        onClick={() => {
+                          exportToPDF(filteredTransactions, categories);
+                          setIsExportMenuOpen(false);
+                          setIsControlsExpanded(false);
+                        }}
+                      >
+                        <span>Exportar PDF</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="sort-controls-compact">
+                  <label className="sort-label-mobile">Ordenar por:</label>
+                  <div className="sort-controls-wrapper">
+                    <select
+                      value={sortField}
+                      onChange={(e) => setSortField(e.target.value)}
+                      className="sort-select-compact"
+                    >
+                      <option value="date">Data</option>
+                      <option value="amount">Valor</option>
+                      <option value="category">Categoria</option>
+                      <option value="type">Tipo</option>
+                      <option value="description">Descrição</option>
+                    </select>
+                    <button 
+                      className="sort-order-button-compact"
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      title={`Ordenação ${sortOrder === 'asc' ? 'Crescente' : 'Decrescente'}`}
+                    >
+                      {sortOrder === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Barra de Controles Unificada (Filtros + Ordenação) - Desktop */}
       <div className="controls-bar">
         <div className="controls-left">
           <div className="search-wrapper">
@@ -666,100 +881,120 @@ const Transactions = () => {
         </div>
       </div>
 
-      {/* Painel de Filtros Expansível */}
+      {/* Painel de Filtros Sidebar */}
       {isFiltersExpanded && (
-        <div className="filters-panel">
-          <div className="filters-panel-header">
-            <h3>Filtros Avançados</h3>
-            {activeFiltersCount > 0 && (
-              <button className="clear-filters-button" onClick={clearAllFilters}>
-                <X size={16} />
-                Limpar filtros
-              </button>
-            )}
-          </div>
-
-          <div className="filters-panel-content">
-            <div className="filters-grid">
-              <div className="filter-group">
-                <label className="filter-label">Tipo de Transação</label>
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  className="filter-select"
+        <>
+          <div 
+            className="filters-panel-overlay" 
+            onClick={() => setIsFiltersExpanded(false)}
+            aria-label="Fechar filtros"
+          />
+          <div className="filters-panel" ref={filtersPanelRef} role="dialog" aria-modal="true" aria-labelledby="filters-panel-title">
+            <div className="filters-panel-header">
+              <h3 id="filters-panel-title">Filtros Avançados</h3>
+              <div className="filters-panel-header-actions">
+                {activeFiltersCount > 0 && (
+                  <button 
+                    className="clear-filters-button" 
+                    onClick={clearAllFilters}
+                    aria-label="Limpar todos os filtros"
+                  >
+                    <X size={16} />
+                    <span>Limpar</span>
+                  </button>
+                )}
+                <button 
+                  className="close-filters-button" 
+                  onClick={() => setIsFiltersExpanded(false)}
+                  aria-label="Fechar painel de filtros"
                 >
-                  <option value="all">Todas</option>
-                  <option value={TRANSACTION_TYPES.INCOME}>Receitas</option>
-                  <option value={TRANSACTION_TYPES.EXPENSE}>Despesas</option>
-                </select>
-              </div>
-
-              <div className="filter-group">
-                <label className="filter-label">Categoria</label>
-                <select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="all">Todas as categorias</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                  <X size={20} />
+                </button>
               </div>
             </div>
 
-            <div className="filters-grid">
-              <div className="filter-group">
-                <label className="filter-label">Data Inicial</label>
-                <input
-                  type="date"
-                  value={filterStartDate}
-                  onChange={(e) => setFilterStartDate(e.target.value)}
-                  className="filter-input"
-                />
+            <div className="filters-panel-content">
+              <div className="filters-grid">
+                <div className="filter-group">
+                  <label className="filter-label">Tipo de Transação</label>
+                  <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">Todas</option>
+                    <option value={TRANSACTION_TYPES.INCOME}>Receitas</option>
+                    <option value={TRANSACTION_TYPES.EXPENSE}>Despesas</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label className="filter-label">Categoria</label>
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">Todas as categorias</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="filter-group">
-                <label className="filter-label">Data Final</label>
-                <input
-                  type="date"
-                  value={filterEndDate}
-                  onChange={(e) => setFilterEndDate(e.target.value)}
-                  className="filter-input"
-                />
-              </div>
-            </div>
+              <div className="filters-grid">
+                <div className="filter-group">
+                  <label className="filter-label">Data Inicial</label>
+                  <input
+                    type="date"
+                    value={filterStartDate}
+                    onChange={(e) => setFilterStartDate(e.target.value)}
+                    className="filter-input"
+                  />
+                </div>
 
-            <div className="filters-grid">
-              <div className="filter-group">
-                <label className="filter-label">Valor Mínimo</label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  step="0.01"
-                  value={filterMinAmount}
-                  onChange={(e) => setFilterMinAmount(e.target.value)}
-                  className="filter-input"
-                />
+                <div className="filter-group">
+                  <label className="filter-label">Data Final</label>
+                  <input
+                    type="date"
+                    value={filterEndDate}
+                    onChange={(e) => setFilterEndDate(e.target.value)}
+                    className="filter-input"
+                  />
+                </div>
               </div>
 
-              <div className="filter-group">
-                <label className="filter-label">Valor Máximo</label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  step="0.01"
-                  value={filterMaxAmount}
-                  onChange={(e) => setFilterMaxAmount(e.target.value)}
-                  className="filter-input"
-                />
+              <div className="filters-grid">
+                <div className="filter-group">
+                  <label className="filter-label">Valor Mínimo</label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    step="0.01"
+                    value={filterMinAmount}
+                    onChange={(e) => setFilterMinAmount(e.target.value)}
+                    className="filter-input"
+                  />
+                </div>
+
+                <div className="filter-group">
+                  <label className="filter-label">Valor Máximo</label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    step="0.01"
+                    value={filterMaxAmount}
+                    onChange={(e) => setFilterMaxAmount(e.target.value)}
+                    className="filter-input"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Lista de Transações Agrupadas */}
