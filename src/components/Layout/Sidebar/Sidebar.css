@@ -144,19 +144,32 @@
     width: 100%;
     height: auto;
     max-height: 70vh;
+    max-height: calc(70vh + env(safe-area-inset-bottom, 0px));
     top: auto;
     bottom: 0;
     left: 0;
     right: 0;
     transform: translateY(100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s ease, opacity 0.3s ease;
     z-index: 1001;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+    /* Esconder completamente quando fechado */
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    /* Respeitar safe area do bottom */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+    /* Garantir que não apareça quando fechado */
+    overflow: hidden;
   }
   
   .sidebar.open {
     transform: translateY(0);
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
   }
   
   .sidebar-drag-indicator {
