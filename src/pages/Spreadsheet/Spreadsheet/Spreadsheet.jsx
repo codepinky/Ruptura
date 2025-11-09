@@ -8,12 +8,16 @@ import {
   Calendar,
   Filter,
   Download,
-  Plus
+  Plus,
+  PlusCircle,
+  X
 } from 'lucide-react';
 import TransactionForm from '../../../components/Forms/TransactionForm/TransactionForm';
 import GoalForm from '../../../components/Goals/GoalForm/GoalForm';
+import SavingForm from '../../../components/Savings/SavingForm/SavingForm';
 import CategoryExpenseCard from '../../../components/Cards/CategoryExpenseCard/CategoryExpenseCard';
 import CategoryAnalysisCard from '../../../components/Cards/CategoryAnalysisCard/CategoryAnalysisCard';
+import FloatingButton from '../../../components/FloatingButton/FloatingButton';
 import './Spreadsheet.css';
 
 const Spreadsheet = () => {
@@ -26,7 +30,11 @@ const Spreadsheet = () => {
     getBalance,
     getGoalsProgress,
     getTotalSavings,
-    getMonthlySavings
+    getMonthlySavings,
+    addGoal,
+    updateGoal,
+    addSaving,
+    updateSaving
   } = useFinancial();
 
   const [activeTab, setActiveTab] = useState('expenses');
@@ -35,6 +43,9 @@ const Spreadsheet = () => {
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [isGoalFormOpen, setIsGoalFormOpen] = useState(false);
   const [isSavingFormOpen, setIsSavingFormOpen] = useState(false);
+  const [addingMoneyToGoal, setAddingMoneyToGoal] = useState(null);
+  const [addingMoneyToSaving, setAddingMoneyToSaving] = useState(null);
+  const [amountToAdd, setAmountToAdd] = useState('');
 
   // Dados filtrados por mês
   const monthlyData = useMemo(() => {
@@ -92,9 +103,22 @@ const Spreadsheet = () => {
   // Progresso das metas
   const goalsProgress = useMemo(() => getGoalsProgress(), [getGoalsProgress]);
 
-  // Economias ativas
-  const activeSavings = useMemo(() => {
-    return savings.filter(s => s.active);
+  // Economias com progresso calculado
+  const savingsProgress = useMemo(() => {
+    return savings.map(saving => {
+      const targetAmount = saving.targetAmount || saving.amount || 0;
+      const currentAmount = saving.currentAmount || 0;
+      const progress = targetAmount > 0 ? (currentAmount / targetAmount) * 100 : 0;
+      const remaining = Math.max(0, targetAmount - currentAmount);
+      
+      return {
+        ...saving,
+        targetAmount,
+        currentAmount,
+        progress: Math.min(100, Math.max(0, progress)),
+        remaining
+      };
+    });
   }, [savings]);
 
   const formatCurrency = (value) => {
@@ -115,11 +139,70 @@ const Spreadsheet = () => {
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
+  // Mapear tipos de meta
+  const goalTypeLabels = {
+    emergency: 'Reserva de Emergência',
+    vacation: 'Viagem/Férias',
+    education: 'Educação',
+    home: 'Casa/Imóvel',
+    car: 'Veículo',
+    investment: 'Investimento',
+    other: 'Outros'
+  };
+
+  // Mapear prioridades
+  const priorityLabels = {
+    high: 'Alta',
+    medium: 'Média',
+    low: 'Baixa'
+  };
+
+  // Handler para adicionar meta
+  const handleSubmitGoal = (goalData) => {
+    // Na página Spreadsheet, sempre adicionamos novas metas
+    // O GoalForm já gera um ID único para novas metas
+    addGoal(goalData);
+  };
+
+  // Handler para adicionar/atualizar economia
+  const handleSubmitSaving = (savingData) => {
+    // Na página Spreadsheet, sempre adicionamos novas economias
+    // O SavingForm já gera um ID único para novas economias
+    addSaving(savingData);
+  };
+
+  // Handler para adicionar dinheiro à economia
+  const handleAddMoneyToSaving = () => {
+    if (!amountToAdd || parseFloat(amountToAdd) <= 0) {
+      alert('Por favor, insira um valor válido maior que zero.');
+      return;
+    }
+    const saving = addingMoneyToSaving;
+    const newAmount = (saving.currentAmount || 0) + parseFloat(amountToAdd);
+    updateSaving({ ...saving, currentAmount: newAmount });
+    setAddingMoneyToSaving(null);
+    setAmountToAdd('');
+  };
+
+  // Handler para adicionar dinheiro à meta
+  const handleAddMoney = () => {
+    if (!amountToAdd || parseFloat(amountToAdd) <= 0) {
+      alert('Por favor, insira um valor válido maior que zero.');
+      return;
+    }
+
+    const goal = addingMoneyToGoal;
+    const newAmount = (goal.currentAmount || 0) + parseFloat(amountToAdd);
+    updateGoal({ ...goal, currentAmount: newAmount });
+    setAddingMoneyToGoal(null);
+    setAmountToAdd('');
+  };
+
   return (
     <div className="spreadsheet-page">
       <div className="page-header">
         <div className="header-content">
-          <h1 className="page-title">📊 Planilha Financeira</h1>
+          <h1 className="page-title">Planilha Financeira</h1>
           <p className="page-subtitle">Controle detalhado de gastos, metas e economias</p>
         </div>
       </div>
@@ -251,15 +334,6 @@ const Spreadsheet = () => {
                 <h2>Receitas e Despesas por Categoria - {months[selectedMonth]} {selectedYear}</h2>
                 <p>Receitas: {formatCurrency(monthlyData.income)} | Despesas: {formatCurrency(monthlyData.expense)}</p>
               </div>
-              <div className="header-actions">
-                <button 
-                  className="add-expense-button"
-                  onClick={() => setIsTransactionFormOpen(true)}
-                >
-                  <Plus size={16} />
-                  Adicionar Transação
-                </button>
-              </div>
             </div>
             
             <div className="expenses-grid">
@@ -276,13 +350,6 @@ const Spreadsheet = () => {
                 <div className="no-expenses">
                   <h3>Nenhuma transação encontrada</h3>
                   <p>Adicione algumas transações para ver receitas e despesas por categoria</p>
-                  <button 
-                    className="add-first-expense-button"
-                    onClick={() => setIsTransactionFormOpen(true)}
-                  >
-                    <Plus size={16} />
-                    Adicionar Primeira Transação
-                  </button>
                 </div>
               )}
             </div>
@@ -303,42 +370,82 @@ const Spreadsheet = () => {
             </div>
             
             <div className="goals-grid">
-              {goalsProgress.map((goal) => (
-                <div key={goal.id} className="goal-card">
-                  <div className="goal-header">
-                    <h3>{goal.name}</h3>
-                    <span className={`priority ${goal.priority}`}>{goal.priority}</span>
-                  </div>
-                  
-                  <div className="goal-progress">
-                    <div className="progress-info">
-                      <span className="current">{formatCurrency(goal.currentAmount)}</span>
-                      <span className="target">{formatCurrency(goal.targetAmount)}</span>
+              {goalsProgress.map((goal) => {
+                const isCompleted = goal.progress >= 100;
+                const progressPercent = Math.min(Math.round(goal.progress), 100);
+                return (
+                  <div key={goal.id} className={`goal-card ${isCompleted ? 'completed' : ''}`}>
+                    <div className="goal-header">
+                      <div className="goal-title-section">
+                        <h3>{goal.name}</h3>
+                        <span className="goal-type">{goalTypeLabels[goal.type] || goal.type}</span>
+                      </div>
+                      <div className="goal-badges">
+                        <span className={`priority ${goal.priority}`}>{priorityLabels[goal.priority] || goal.priority}</span>
+                        {isCompleted && (
+                          <span className="completed-badge">
+                            <Target size={14} />
+                            Concluída
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="progress-bar">
-                      <div 
-                        className="progress-fill" 
-                        style={{ width: `${Math.min(goal.progress, 100)}%` }}
-                      />
+                    
+                    <div className="goal-progress">
+                      <div className="progress-info">
+                        <div className="current">
+                          <span>{formatCurrency(goal.currentAmount)}</span>
+                        </div>
+                        <div className="target">
+                          <span>{formatCurrency(goal.targetAmount)}</span>
+                        </div>
+                      </div>
+                      <p className={`progress-text ${isCompleted ? 'completed' : ''}`}>
+                        {isCompleted ? (
+                          <>
+                            <Target size={14} />
+                            <span>100% concluído - Meta alcançada!</span>
+                          </>
+                        ) : (
+                          `${goal.progress.toFixed(1)}% concluído`
+                        )}
+                      </p>
                     </div>
-                    <p className="progress-text">
-                      {goal.progress.toFixed(1)}% concluído
-                    </p>
+                    
+                    <div className="goal-details">
+                      {!isCompleted && (
+                        <p className="remaining">
+                          Restam: {formatCurrency(goal.remaining)}
+                        </p>
+                      )}
+                      <p className="deadline">
+                        Prazo: {formatDate(goal.deadline)}
+                      </p>
+                      <p className={`days-remaining ${goal.daysRemaining <= 0 && !isCompleted ? 'overdue' : ''}`}>
+                        {isCompleted ? (
+                          'Meta alcançada com sucesso!'
+                        ) : goal.daysRemaining > 0 ? (
+                          `${goal.daysRemaining} dias restantes`
+                        ) : (
+                          'Prazo vencido'
+                        )}
+                      </p>
+                    </div>
+                    
+                    {!isCompleted && (
+                      <div className="goal-add-money">
+                        <button 
+                          className="add-money-btn"
+                          onClick={() => setAddingMoneyToGoal(goal)}
+                        >
+                          <PlusCircle size={18} />
+                          <span>Adicionar Valor</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  
-                  <div className="goal-details">
-                    <p className="remaining">
-                      Restam: {formatCurrency(goal.remaining)}
-                    </p>
-                    <p className="deadline">
-                      Prazo: {formatDate(goal.deadline)}
-                    </p>
-                    <p className="days-remaining">
-                      {goal.daysRemaining > 0 ? `${goal.daysRemaining} dias restantes` : 'Prazo vencido'}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -356,36 +463,64 @@ const Spreadsheet = () => {
               </button>
             </div>
             
-            <div className="savings-summary">
-              <div className="saving-stat">
-                <h3>Total Acumulado</h3>
-                <p>{formatCurrency(getTotalSavings())}</p>
-              </div>
-              <div className="saving-stat">
-                <h3>Economia Mensal</h3>
-                <p>{formatCurrency(getMonthlySavings())}</p>
-              </div>
-            </div>
-            
             <div className="savings-grid">
-              {activeSavings.map((saving) => (
-                <div key={saving.id} className="saving-card">
-                  <div className="saving-header">
-                    <h3>{saving.name}</h3>
-                    <span className={`status ${saving.active ? 'active' : 'inactive'}`}>
-                      {saving.active ? 'Ativo' : 'Inativo'}
-                    </span>
+              {savingsProgress.map((saving) => {
+                const isCompleted = saving.progress >= 100;
+                return (
+                  <div key={saving.id} className={`saving-card ${isCompleted ? 'completed' : ''}`}>
+                    <div className="saving-header">
+                      <div className="saving-title-section">
+                        <h3>{saving.name}</h3>
+                      </div>
+                      {isCompleted && (
+                        <span className="completed-badge">
+                          <PiggyBank size={14} />
+                          Concluída
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="saving-progress">
+                      <div className="progress-info">
+                        <div className="current">
+                          <span>{formatCurrency(saving.currentAmount)}</span>
+                        </div>
+                        <div className="target">
+                          <span>{formatCurrency(saving.targetAmount)}</span>
+                        </div>
+                      </div>
+                      <p className={`progress-text ${isCompleted ? 'completed' : ''}`}>
+                        {isCompleted ? (
+                          <>
+                            <PiggyBank size={14} />
+                            <span>100% concluído - Economia alcançada!</span>
+                          </>
+                        ) : (
+                          `${saving.progress.toFixed(1)}% concluído`
+                        )}
+                      </p>
+                    </div>
+                    
+                    {saving.description && (
+                      <div className="saving-description">
+                        <p>{saving.description}</p>
+                      </div>
+                    )}
+                    
+                    {!isCompleted && (
+                      <div className="saving-add-money">
+                        <button 
+                          className="add-money-btn"
+                          onClick={() => setAddingMoneyToSaving(saving)}
+                        >
+                          <PlusCircle size={18} />
+                          <span>Adicionar Valor</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  
-                  <div className="saving-details">
-                    <p className="amount">{formatCurrency(saving.amount)}</p>
-                    <p className="frequency">{saving.frequency}</p>
-                    <p className="period">
-                      {formatDate(saving.startDate)} - {formatDate(saving.endDate)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -400,18 +535,140 @@ const Spreadsheet = () => {
       <GoalForm
         isOpen={isGoalFormOpen}
         onClose={() => setIsGoalFormOpen(false)}
+        onSubmit={handleSubmitGoal}
       />
       
-      {/* Modal de Economia - placeholder por enquanto */}
-      {isSavingFormOpen && (
-        <div className="modal-overlay" onClick={() => setIsSavingFormOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Nova Economia</h3>
-            <p>Funcionalidade em desenvolvimento...</p>
-            <button onClick={() => setIsSavingFormOpen(false)}>Fechar</button>
+      <SavingForm
+        isOpen={isSavingFormOpen}
+        onClose={() => setIsSavingFormOpen(false)}
+        onSubmit={handleSubmitSaving}
+      />
+
+      {/* Modal para adicionar dinheiro à meta */}
+      {addingMoneyToGoal && (
+        <div className="modal-overlay" onClick={() => {
+          setAddingMoneyToGoal(null);
+          setAmountToAdd('');
+        }}>
+          <div className="modal-content add-money-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="add-money-header">
+              <h3>Adicionar Valor à Meta</h3>
+              <button 
+                className="close-modal-btn"
+                onClick={() => {
+                  setAddingMoneyToGoal(null);
+                  setAmountToAdd('');
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="add-money-content">
+              <div className="goal-info">
+                <h4>{addingMoneyToGoal.name}</h4>
+                <p className="goal-amounts">
+                  {formatCurrency(addingMoneyToGoal.currentAmount)} / {formatCurrency(addingMoneyToGoal.targetAmount)}
+                </p>
+              </div>
+              <div className="add-money-input-group">
+                <label htmlFor="amount">Valor a adicionar (R$)</label>
+                <input
+                  type="number"
+                  id="amount"
+                  value={amountToAdd}
+                  onChange={(e) => setAmountToAdd(e.target.value)}
+                  placeholder="0,00"
+                  step="0.01"
+                  min="0"
+                  autoFocus
+                />
+              </div>
+              <div className="add-money-actions">
+                <button 
+                  className="cancel-btn"
+                  onClick={() => {
+                    setAddingMoneyToGoal(null);
+                    setAmountToAdd('');
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className="confirm-btn"
+                  onClick={handleAddMoney}
+                >
+                  <PlusCircle size={18} />
+                  Adicionar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Modal para adicionar dinheiro à economia */}
+      {addingMoneyToSaving && (
+        <div className="modal-overlay" onClick={() => {
+          setAddingMoneyToSaving(null);
+          setAmountToAdd('');
+        }}>
+          <div className="modal-content add-money-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="add-money-header">
+              <h3>Adicionar Valor à Economia</h3>
+              <button 
+                className="close-modal-btn"
+                onClick={() => {
+                  setAddingMoneyToSaving(null);
+                  setAmountToAdd('');
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="add-money-content">
+              <div className="goal-info">
+                <h4>{addingMoneyToSaving.name}</h4>
+                <p className="goal-amounts">
+                  {formatCurrency(addingMoneyToSaving.currentAmount || 0)} / {formatCurrency(addingMoneyToSaving.targetAmount || addingMoneyToSaving.amount || 0)}
+                </p>
+              </div>
+              <div className="add-money-input-group">
+                <label htmlFor="amount-saving">Valor a adicionar (R$)</label>
+                <input
+                  type="number"
+                  id="amount-saving"
+                  value={amountToAdd}
+                  onChange={(e) => setAmountToAdd(e.target.value)}
+                  placeholder="0,00"
+                  step="0.01"
+                  min="0"
+                  autoFocus
+                />
+              </div>
+              <div className="add-money-actions">
+                <button 
+                  className="cancel-btn"
+                  onClick={() => {
+                    setAddingMoneyToSaving(null);
+                    setAmountToAdd('');
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className="confirm-btn"
+                  onClick={handleAddMoneyToSaving}
+                >
+                  Adicionar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FloatingButton */}
+      <FloatingButton onClick={() => setIsTransactionFormOpen(true)} />
     </div>
   );
 };

@@ -39,6 +39,7 @@ const Transactions = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+
   // Fechar menu de exportação ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -56,7 +57,7 @@ const Transactions = () => {
     };
   }, [isExportMenuOpen]);
 
-  // Fechar painel de filtros com ESC, bloquear scroll do body e gerenciar foco
+  // Fechar painel de filtros/controles com ESC, bloquear scroll do body e gerenciar foco
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === 'Escape') {
@@ -69,11 +70,61 @@ const Transactions = () => {
     };
 
     const isAnyPanelOpen = isFiltersExpanded || isControlsExpanded;
+    const isMobile = window.innerWidth <= 768;
+
+    // Variáveis para armazenar estado original (serão usadas no cleanup)
+    let scrollY = 0;
+    let originalOverflow = '';
+    let originalPosition = '';
+    let originalTop = '';
+    let originalWidth = '';
+    let originalHeight = '';
+    let originalLeft = '';
+    let originalHtmlOverflow = '';
+    let content = null;
+    let wasMobileBlocked = false;
 
     if (isAnyPanelOpen) {
       document.addEventListener('keydown', handleEscape);
-      // Bloquear scroll do body
-      document.body.style.overflow = 'hidden';
+      
+      // Bloquear scroll e interações apenas no mobile (mesma lógica do sidebar)
+      if (isMobile) {
+        wasMobileBlocked = true;
+        
+        // Salvar posição atual do scroll ANTES de qualquer mudança
+        scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Salvar estilos originais
+        originalOverflow = document.body.style.overflow;
+        originalPosition = document.body.style.position;
+        originalTop = document.body.style.top;
+        originalWidth = document.body.style.width;
+        originalHeight = document.body.style.height;
+        originalLeft = document.body.style.left;
+        
+        // Bloquear scroll do body
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+        
+        // Também bloquear no html para garantir
+        const html = document.documentElement;
+        originalHtmlOverflow = html.style.overflow;
+        html.style.overflow = 'hidden';
+        
+        // Bloquear touch events no conteúdo
+        content = document.querySelector('.content');
+        if (content) {
+          content.style.touchAction = 'none';
+          content.style.pointerEvents = 'none';
+        }
+      } else {
+        // Desktop: apenas bloquear overflow
+        document.body.style.overflow = 'hidden';
+      }
       
       if (isFiltersExpanded) {
         // Focar no painel de filtros para acessibilidade
@@ -87,13 +138,58 @@ const Transactions = () => {
         }, 100);
       }
     } else {
-      // Restaurar scroll do body
+      // Nenhum painel aberto - garantir que tudo está restaurado
       document.body.style.overflow = '';
     }
-
+    
+    // Cleanup único para ambos os casos
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      if (!isFiltersExpanded && !isControlsExpanded) {
+      
+      if (wasMobileBlocked) {
+        // Restaurar estilos do body
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = originalPosition;
+        document.body.style.top = originalTop;
+        document.body.style.left = originalLeft;
+        document.body.style.width = originalWidth;
+        document.body.style.height = originalHeight;
+        
+        // Restaurar html
+        const html = document.documentElement;
+        html.style.overflow = originalHtmlOverflow;
+        
+        // Restaurar interações do conteúdo
+        if (content) {
+          content.style.touchAction = '';
+          content.style.pointerEvents = '';
+        }
+        
+        // Restaurar scroll em múltiplas tentativas para garantir
+        const restoreScroll = () => {
+          window.scrollTo({
+            top: scrollY,
+            behavior: 'auto'
+          });
+          window.scrollTo(0, scrollY);
+          document.documentElement.scrollTop = scrollY;
+          document.body.scrollTop = scrollY;
+        };
+        
+        // Usar requestAnimationFrame para garantir que o DOM esteja pronto
+        requestAnimationFrame(() => {
+          restoreScroll();
+          
+          // Verificar e corrigir se necessário após um frame
+          requestAnimationFrame(() => {
+            const currentScroll = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+            if (Math.abs(currentScroll - scrollY) > 1) {
+              restoreScroll();
+            }
+          });
+        });
+      } else if (!isAnyPanelOpen) {
+        // Desktop: restaurar overflow apenas se nenhum painel estiver aberto
         document.body.style.overflow = '';
       }
     };
@@ -612,11 +708,11 @@ const Transactions = () => {
       {isControlsExpanded && (
         <>
           <div 
-            className="controls-mobile-overlay" 
+            className={`controls-mobile-overlay ${isFiltersExpanded ? 'hidden' : ''}`}
             onClick={() => setIsControlsExpanded(false)}
             aria-label="Fechar controles"
           />
-          <div className="controls-mobile-panel">
+          <div className={`controls-mobile-panel ${isFiltersExpanded ? 'hidden' : ''}`}>
             <div className="controls-mobile-panel-header">
               <h3>Controles</h3>
               <button 
@@ -653,10 +749,18 @@ const Transactions = () => {
               <div className="controls-mobile-actions">
                 <button 
                   className="filter-toggle-button-new"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    // Primeiro abrir filtros, depois fechar controles
+                    // Isso garante que o painel de filtros apareça
                     setIsFiltersExpanded(true);
-                    setIsControlsExpanded(false);
+                    // Fechar controles após um pequeno delay para garantir transição suave
+                    setTimeout(() => {
+                      setIsControlsExpanded(false);
+                    }, 50);
                   }}
+                  style={{ position: 'relative', zIndex: 2000, pointerEvents: 'auto' }}
                 >
                   <Filter size={16} />
                   <span>Filtros</span>

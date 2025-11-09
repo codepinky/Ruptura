@@ -360,15 +360,13 @@ export function FinancialProvider({ children }) {
   const getTotalSavings = () => {
     if (!state.savings || !Array.isArray(state.savings)) return 0;
     return state.savings
-      .filter(s => s && s.active && typeof s.amount === 'number')
-      .reduce((sum, s) => sum + s.amount, 0);
+      .filter(s => s && typeof s.currentAmount === 'number')
+      .reduce((sum, s) => sum + (s.currentAmount || 0), 0);
   };
 
   const getMonthlySavings = () => {
-    if (!state.savings || !Array.isArray(state.savings)) return 0;
-    return state.savings
-      .filter(s => s && s.active && s.frequency === 'monthly' && typeof s.amount === 'number')
-      .reduce((sum, s) => sum + s.amount, 0);
+    // Retorna o total de economias (mantido para compatibilidade, mas pode ser removido se não for usado)
+    return getTotalSavings();
   };
 
   const getExpenseAnalysis = (year = new Date().getFullYear(), month = new Date().getMonth()) => {

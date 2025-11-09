@@ -849,9 +849,31 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 1996;
+  z-index: 1996; /* Abaixo do painel de controles (1998) */
   animation: fadeIn 0.3s ease-out;
+  /* Bloquear todas as interações quando visível */
+  pointer-events: auto;
+  /* Bloquear scroll e touch no conteúdo atrás */
+  touch-action: none;
+  /* Respeitar safe areas */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  margin-top: calc(-1 * env(safe-area-inset-top, 0px));
+  margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+  margin-left: calc(-1 * env(safe-area-inset-left, 0px));
+  margin-right: calc(-1 * env(safe-area-inset-right, 0px));
 }
+
+/* Garantir que o painel de controles e seus elementos filhos possam receber cliques */
+.controls-mobile-panel,
+.controls-mobile-panel * {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1998;
+}
+
 
 @media (prefers-reduced-motion: no-preference) {
   .controls-mobile-overlay {
@@ -871,13 +893,24 @@
   border-top: 1px solid var(--border-primary);
   border-radius: clamp(16px, 4vw, 20px) clamp(16px, 4vw, 20px) 0 0;
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
-  z-index: 1997;
+  z-index: 1998; /* Acima do overlay (1996) */
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   animation: slideUpFromBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  /* Garantir que botões dentro do painel possam abrir outros painéis */
+  isolation: isolate;
+}
+
+/* Quando o painel de filtros estiver aberto, esconder o painel de controles */
+.controls-mobile-panel.hidden,
+.controls-mobile-overlay.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -956,6 +989,10 @@
   display: flex;
   flex-direction: column;
   gap: clamp(0.75rem, 2vw, 1rem);
+  /* Garantir que botões dentro possam ter z-index maior se necessário */
+  position: relative;
+  z-index: 1999; /* Acima do painel (1998) para garantir que botões sejam clicáveis */
+  pointer-events: auto;
 }
 
 .sort-label-mobile {
@@ -1051,12 +1088,17 @@
 
 .search-icon-controls {
   position: absolute;
-  left: clamp(0.75rem, 2.5vw, 1rem);
+  left: clamp(1.75rem, 2.5vw, 1rem);
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--text-secondary);
   pointer-events: none;
-  z-index: 1;
+  z-index: 2; /* Acima do input para garantir visibilidade */
   width: clamp(16px, 4vw, 18px);
   height: clamp(16px, 4vw, 18px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .search-input-controls {
@@ -1070,6 +1112,8 @@
   transition: all 0.3s ease;
   min-height: 44px; /* Alvo de toque mínimo */
   box-sizing: border-box;
+  position: relative;
+  z-index: 1; /* Abaixo do ícone */
 }
 
 .search-input-controls:focus {
@@ -1117,6 +1161,11 @@
   gap: clamp(0.375rem, 1.5vw, 0.5rem);
   white-space: nowrap;
   min-height: 44px; /* Alvo de toque mínimo */
+  /* Garantir que o botão seja sempre clicável */
+  position: relative;
+  z-index: 2000;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
   width: 100%;
   touch-action: manipulation;
 }
@@ -1366,8 +1415,12 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 1998;
+  z-index: 2100; /* Muito acima do painel de controles (1998) e seu overlay (1996) */
   animation: fadeIn 0.3s ease-out;
+  /* Garantir que o overlay esteja sempre visível quando renderizado */
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1388,7 +1441,7 @@
   background: var(--bg-card);
   border-right: 1px solid var(--border-primary);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
-  z-index: 1999;
+  z-index: 2101; /* Muito acima do overlay de filtros (2100), painel de controles (1998) e seu overlay (1996) */
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -1396,6 +1449,10 @@
   animation: slideInFromLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding-top: max(env(safe-area-inset-top), 0px);
   padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  /* Garantir que o painel esteja sempre visível quando renderizado */
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1938,6 +1995,7 @@
   
   .period-shortcuts {
     gap: clamp(0.375rem, 1.5vw, 0.5rem);
+    justify-content: center;
   }
 
   .period-shortcut {

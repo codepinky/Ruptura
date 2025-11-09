@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
   CreditCard, 
-  BarChart3, 
   Tag, 
   Settings,
   Wallet,
@@ -19,7 +18,6 @@ const Sidebar = ({ sidebarOpen, onNavigate }) => {
   const menuItems = [
     { path: '/', icon: Home, label: 'Dashboard', exact: true },
     { path: '/transactions', icon: CreditCard, label: 'Transações' },
-    { path: '/reports', icon: BarChart3, label: 'Relatórios' },
     { path: '/spreadsheet', icon: Table, label: 'Planilha' },
     { path: '/categories', icon: Tag, label: 'Categorias' },
     { path: '/budgets', icon: Wallet, label: 'Orçamentos' },
