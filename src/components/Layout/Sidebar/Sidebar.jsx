@@ -5,8 +5,6 @@ import {
   CreditCard, 
   Tag, 
   Settings,
-  Wallet,
-  TrendingUp,
   Calendar,
   Table
 } from 'lucide-react';
@@ -20,8 +18,6 @@ const Sidebar = ({ sidebarOpen, onNavigate }) => {
     { path: '/transactions', icon: CreditCard, label: 'Transações' },
     { path: '/spreadsheet', icon: Table, label: 'Planilha' },
     { path: '/categories', icon: Tag, label: 'Categorias' },
-    { path: '/budgets', icon: Wallet, label: 'Orçamentos' },
-    { path: '/goals', icon: TrendingUp, label: 'Metas' },
     { path: '/calendar', icon: Calendar, label: 'Calendário' },
     { path: '/settings', icon: Settings, label: 'Configurações' }
   ];

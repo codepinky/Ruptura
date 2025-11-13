@@ -64,8 +64,8 @@ const BudgetCard = ({ budget, category, spent, onEdit, onDelete, onDuplicate }) 
             style={{ backgroundColor: category?.color || '#64748B' }}
           />
           <div className="budget-category-details">
-            <h3 className="budget-category-name">{category?.name || 'Sem categoria'}</h3>
-            <span className="budget-period">{formatPeriod()}</span>
+            <h3 className="budget-category-name">{budget.name || category?.name || 'Sem categoria'}</h3>
+            <span className="budget-period">{budget.name && category ? category.name : formatPeriod()}</span>
           </div>
         </div>
         <div className="budget-status-badge" style={{ backgroundColor: `${statusColor}15`, color: statusColor }}>
