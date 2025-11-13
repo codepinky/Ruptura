@@ -1,21 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useFinancial } from '../../../context/FinancialContext';
 import CategoryForm from '../../../components/Forms/CategoryForm/CategoryForm';
-import CategoryCharts from '../../../components/Charts/CategoryCharts/CategoryCharts';
 import FloatingButton from '../../../components/FloatingButton/FloatingButton';
 import { 
   Plus, 
   Search, 
-  Edit3, 
-  Trash2, 
-  TrendingUp, 
-  TrendingDown,
-  DollarSign,
   Tag,
-  Activity,
-  Filter,
-  BarChart3,
-  List as ListIcon
+  Filter
 } from 'lucide-react';
 import './Categories.css';
 
@@ -84,242 +75,26 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
-// Componente: Card de Categoria Compacto (para aba Minhas Categorias)
-const CompactCategoryCard = ({ category, TRANSACTION_TYPES, onEdit, onDelete }) => {
-  const percentage = category.totalTransactions > 0 
-    ? Math.min((category.totalTransactions / 10) * 100, 100) 
-    : 0;
+// Componente: Item de Categoria Simples (para aba Minhas Categorias)
+const SimpleCategoryItem = ({ category, TRANSACTION_TYPES }) => {
+  const totalAmount = category.type === TRANSACTION_TYPES.INCOME 
+    ? category.totalIncome 
+    : category.totalExpense;
 
   return (
-    <div className="compact-category-card">
-      <div className="compact-card-gradient" style={{ 
-        background: `linear-gradient(135deg, ${category.color}15 0%, ${category.color}05 100%)` 
-      }} />
-      <div className="compact-card-content">
-        <div className="compact-card-left">
-          <div className="compact-color-wrapper">
-            <div 
-              className="compact-color-indicator" 
-              style={{ backgroundColor: category.color }} 
-            />
-            <div className="compact-color-glow" style={{ 
-              boxShadow: `0 0 20px ${category.color}40` 
-            }} />
-          </div>
-          <div className="compact-card-info">
-            <h3 className="compact-category-name">{category.name}</h3>
-            <div className="compact-badges">
-              <span className={`compact-type-badge ${category.type}`}>
-                {category.type === TRANSACTION_TYPES.INCOME ? 'Receita' : 'Despesa'}
-              </span>
-              {category.totalTransactions > 0 && (
-                <span className="compact-transaction-badge">
-                  {category.totalTransactions} {category.totalTransactions === 1 ? 'transação' : 'transações'}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="compact-card-right">
-          <div className="compact-card-stats">
-            {category.totalTransactions > 0 && (
-              <div className="compact-stat">
-                <div className="compact-stat-icon">
-                  <Activity size={14} />
-                </div>
-                <div className="compact-stat-content">
-                  <span className="compact-stat-value">{category.totalTransactions}</span>
-                  <span className="compact-stat-label">transações</span>
-                </div>
-              </div>
-            )}
-            <div className="compact-amount-wrapper">
-              <div className={`compact-amount ${category.netAmount >= 0 ? 'positive' : 'negative'}`}>
-                {formatCurrency(Math.abs(category.netAmount))}
-              </div>
-              {category.totalTransactions > 0 && (
-                <div className="compact-amount-label">
-                  {category.netAmount >= 0 ? 'Saldo positivo' : 'Saldo negativo'}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="compact-card-actions">
-            <button 
-              className="compact-action-btn edit" 
-              onClick={() => onEdit(category)} 
-              title="Editar categoria"
-            >
-              <Edit3 size={16} />
-            </button>
-            <button 
-              className="compact-action-btn delete" 
-              onClick={() => onDelete(category.id)} 
-              title="Excluir categoria"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
+    <div className="simple-category-item">
+      <div 
+        className="simple-category-color" 
+        style={{ backgroundColor: category.color }} 
+      />
+      <div className="simple-category-info">
+        <div className="simple-category-name">{category.name}</div>
+        <div className={`simple-category-amount ${category.type}`}>
+          {formatCurrency(totalAmount)}
         </div>
       </div>
-      {category.totalTransactions > 0 && (
-        <div className="compact-card-progress">
-          <div 
-            className="compact-progress-bar" 
-            style={{ 
-              width: `${percentage}%`,
-              backgroundColor: category.color 
-            }} 
-          />
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Componente: Stats Cards para Análise
-const AnalysisStats = ({ filteredCategories }) => {
-  const stats = useMemo(() => {
-    const totalExpense = filteredCategories.reduce((sum, cat) => sum + cat.totalExpense, 0);
-    const totalIncome = filteredCategories.reduce((sum, cat) => sum + cat.totalIncome, 0);
-    const totalTransactions = filteredCategories.reduce((sum, cat) => sum + cat.totalTransactions, 0);
-    const netBalance = totalIncome - totalExpense;
-    const savingsRate = totalIncome > 0 ? ((netBalance / totalIncome) * 100).toFixed(1) : 0;
-    
-    return {
-      totalCategories: filteredCategories.length,
-      totalExpense,
-      totalIncome,
-      totalTransactions,
-      netBalance,
-      savingsRate
-    };
-  }, [filteredCategories]);
-
-  return (
-    <div className="analysis-stats">
-      <div className="analysis-stat-card">
-        <div className="analysis-stat-icon">
-          <Tag size={20} />
-        </div>
-        <div className="analysis-stat-content">
-          <h3>{stats.totalCategories}</h3>
-          <p>Categorias</p>
-          <span className="analysis-stat-subtitle">Total cadastradas</span>
-        </div>
-        <div className="analysis-stat-decoration" />
-      </div>
-      
-      <div className="analysis-stat-card income-card">
-        <div className="analysis-stat-icon income">
-          <TrendingUp size={20} />
-        </div>
-        <div className="analysis-stat-content">
-          <h3>{formatCurrency(stats.totalIncome)}</h3>
-          <p>Total Receitas</p>
-          <span className="analysis-stat-subtitle">Entradas de dinheiro</span>
-        </div>
-        <div className="analysis-stat-decoration income-decoration" />
-      </div>
-      
-      <div className="analysis-stat-card expense-card">
-        <div className="analysis-stat-icon expense">
-          <TrendingDown size={20} />
-        </div>
-        <div className="analysis-stat-content">
-          <h3>{formatCurrency(stats.totalExpense)}</h3>
-          <p>Total Despesas</p>
-          <span className="analysis-stat-subtitle">Saídas de dinheiro</span>
-        </div>
-        <div className="analysis-stat-decoration expense-decoration" />
-      </div>
-      
-      <div className="analysis-stat-card balance-card">
-        <div className="analysis-stat-icon">
-          <DollarSign size={20} />
-        </div>
-        <div className="analysis-stat-content">
-          <h3 className={stats.netBalance >= 0 ? 'positive' : 'negative'}>
-            {formatCurrency(stats.netBalance)}
-          </h3>
-          <p>Saldo Líquido</p>
-          <span className="analysis-stat-subtitle">
-            {stats.savingsRate > 0 ? `${stats.savingsRate}% de economia` : 'Sem economia'}
-          </span>
-        </div>
-        <div className="analysis-stat-decoration balance-decoration" />
-      </div>
-    </div>
-  );
-};
-
-// Componente: Top 5 Categorias
-const TopCategories = ({ categories }) => {
-  const topCategories = useMemo(() => {
-    const sorted = categories
-      .sort((a, b) => (b.totalExpense + b.totalIncome) - (a.totalExpense + a.totalIncome))
-      .slice(0, 5);
-    
-    const total = sorted.reduce((sum, cat) => sum + cat.totalExpense + cat.totalIncome, 0);
-    
-    return sorted.map(cat => ({
-      ...cat,
-      percentage: total > 0 ? ((cat.totalExpense + cat.totalIncome) / total * 100).toFixed(1) : 0
-    }));
-  }, [categories]);
-
-  if (topCategories.length === 0) return null;
-
-  return (
-    <div className="top-categories-section">
-      <div className="section-header">
-        <h3 className="section-title">Top 5 Categorias</h3>
-        <span className="section-subtitle">Categorias com maior movimentação</span>
-      </div>
-      <div className="top-categories-list">
-        {topCategories.map((category, index) => (
-          <div key={category.id} className="top-category-item">
-            <div className="top-category-rank-wrapper">
-              <div className="top-category-rank">#{index + 1}</div>
-              {index === 0 && <div className="top-category-crown">👑</div>}
-            </div>
-            <div className="top-category-color-wrapper">
-              <div 
-                className="top-category-color" 
-                style={{ backgroundColor: category.color }} 
-              />
-              <div className="top-category-glow" style={{ 
-                boxShadow: `0 0 15px ${category.color}50` 
-              }} />
-            </div>
-            <div className="top-category-info">
-              <h4>{category.name}</h4>
-              <div className="top-category-meta">
-                <span className="top-category-type">
-                  {category.type === 'income' ? 'Receita' : 'Despesa'}
-                </span>
-                <span className="top-category-percentage">{category.percentage}%</span>
-              </div>
-              <div className="top-category-progress">
-                <div 
-                  className="top-category-progress-bar" 
-                  style={{ 
-                    width: `${category.percentage}%`,
-                    backgroundColor: category.color 
-                  }} 
-                />
-              </div>
-            </div>
-            <div className="top-category-amount-wrapper">
-              <div className="top-category-amount">
-                {formatCurrency(category.totalExpense + category.totalIncome)}
-              </div>
-              <span className="top-category-transactions">
-                {category.totalTransactions} {category.totalTransactions === 1 ? 'transação' : 'transações'}
-              </span>
-            </div>
-          </div>
-        ))}
+      <div className={`simple-category-type ${category.type}`}>
+        {category.type === TRANSACTION_TYPES.INCOME ? 'Receita' : 'Despesa'}
       </div>
     </div>
   );
@@ -342,19 +117,6 @@ const CategoryEmptyState = ({ onCreate, message = "Nenhuma categoria encontrada"
   );
 };
 
-// Componente: Sistema de Abas
-const TabButton = ({ active, onClick, children, icon: Icon }) => {
-  return (
-    <button 
-      className={`tab-button ${active ? 'active' : ''}`}
-      onClick={onClick}
-    >
-      {Icon && <Icon size={18} />}
-      <span>{children}</span>
-    </button>
-  );
-};
-
 // Componente Principal
 const Categories = () => {
   const { 
@@ -370,7 +132,6 @@ const Categories = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [activeTab, setActiveTab] = useState('categories'); // 'categories' ou 'analysis'
 
   const categoryAnalysis = useCategoryAnalysis(categories, transactions, TRANSACTION_TYPES);
   const filteredCategories = useCategoryFilters(categoryAnalysis, searchTerm, selectedType);
@@ -391,49 +152,21 @@ const Categories = () => {
     }
   };
 
-  // Calcular totais para gráficos
-  const totalIncome = filteredCategories.reduce((sum, cat) => sum + cat.totalIncome, 0);
-  const totalExpense = filteredCategories.reduce((sum, cat) => sum + cat.totalExpense, 0);
-
   return (
     <div className="categories-page">
       {/* Header Simplificado */}
-      <header className="categories-header">
+      <div className="categories-header">
         <div className="header-content">
-          <div className="title-with-icon">
-            <Tag size={32} className="title-icon" />
-            <h1 className="page-title">Categorias</h1>
-          </div>
-          <button 
-            className="header-create-btn desktop-only"
-            onClick={() => setShowCreateForm(true)}
-          >
-            <Plus size={20} />
-            <span>Nova Categoria</span>
-          </button>
+          <h1 className="categories-title">Categorias</h1>
+          <p className="page-subtitle">
+            Organize suas receitas e despesas por categorias para um melhor controle financeiro
+          </p>
         </div>
-      </header>
+      </div>
 
-      {/* Sistema de Abas */}
-      <div className="tabs-container">
-        <div className="tabs-header">
-          <TabButton 
-            active={activeTab === 'categories'} 
-            onClick={() => setActiveTab('categories')}
-            icon={ListIcon}
-          >
-            Minhas Categorias
-          </TabButton>
-          <TabButton 
-            active={activeTab === 'analysis'} 
-            onClick={() => setActiveTab('analysis')}
-            icon={BarChart3}
-          >
-            Análise
-          </TabButton>
-        </div>
-
-        {/* Barra de Busca e Filtros - Sempre Visível */}
+      {/* Container Principal */}
+      <div className="categories-container">
+        {/* Barra de Busca e Filtros */}
         <div className="categories-controls">
           <div className="search-box">
             <Search className="search-icon" />
@@ -460,57 +193,26 @@ const Categories = () => {
           </div>
         </div>
 
-        {/* Conteúdo das Abas */}
-        <div className="tabs-content">
-          {/* Aba: Minhas Categorias */}
-          {activeTab === 'categories' && (
-            <div className="tab-panel categories-tab">
-              <div className="categories-list-container">
-                {filteredCategories.length > 0 ? (
-                  <div className="compact-categories-grid">
-                    {filteredCategories.map(category => (
-                      <CompactCategoryCard
-                        key={category.id}
-                        category={category}
-                        TRANSACTION_TYPES={TRANSACTION_TYPES}
-                        onEdit={setEditingCategory}
-                        onDelete={handleDeleteCategory}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <CategoryEmptyState 
-                    onCreate={() => setShowCreateForm(true)}
-                    message="Nenhuma categoria encontrada"
+        {/* Lista de Categorias */}
+        <div className="categories-content">
+          <div className="categories-list-container">
+            {filteredCategories.length > 0 ? (
+              <div className="simple-categories-list">
+                {filteredCategories.map(category => (
+                  <SimpleCategoryItem
+                    key={category.id}
+                    category={category}
+                    TRANSACTION_TYPES={TRANSACTION_TYPES}
                   />
-                )}
+                ))}
               </div>
-            </div>
-          )}
-
-          {/* Aba: Análise */}
-          {activeTab === 'analysis' && (
-            <div className="tab-panel analysis-tab">
-              <AnalysisStats filteredCategories={filteredCategories} />
-              
-              {filteredCategories.length > 0 ? (
-                <>
-                  <CategoryCharts 
-                    categoryAnalysis={filteredCategories}
-                    totalIncome={totalIncome}
-                    totalExpense={totalExpense}
-                  />
-                  <TopCategories categories={filteredCategories} />
-                </>
-              ) : (
-                <CategoryEmptyState 
-                  onCreate={() => setShowCreateForm(true)}
-                  message="Nenhuma categoria para analisar"
-                  description="Crie categorias e adicione transações para ver análises e gráficos detalhados"
-                />
-              )}
-            </div>
-          )}
+            ) : (
+              <CategoryEmptyState 
+                onCreate={() => setShowCreateForm(true)}
+                message="Nenhuma categoria encontrada"
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -540,3 +242,4 @@ const Categories = () => {
 };
 
 export default Categories;
+
