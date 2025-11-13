@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { Search, TrendingUp, TrendingDown, Wallet, Filter, ArrowUpDown, ArrowUp, ArrowDown, X, Calendar, DollarSign, Plus, CheckSquare, Square, Trash2, Download, ChevronDown } from 'lucide-react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
-import TransactionForm from '../../../components/Forms/TransactionForm/TransactionForm';
+import SimpleTransactionForm from '../../../components/SimpleTransactionForm/SimpleTransactionForm';
 import TransactionDetailCard from '../../../components/Cards/TransactionDetailCard/TransactionDetailCard';
 import FloatingButton from '../../../components/FloatingButton/FloatingButton';
 import { exportToCSV, exportToPDF } from '../../../utils/exportUtils';
@@ -1138,10 +1138,9 @@ const Transactions = () => {
       <FloatingButton onClick={() => setIsFormOpen(true)} />
 
       {/* Modal do Formulário */}
-      <TransactionForm
+      <SimpleTransactionForm
         isOpen={isFormOpen}
         onClose={handleCloseForm}
-        transaction={editingTransaction}
       />
 
       {/* Modal de Detalhes */}

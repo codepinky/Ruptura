@@ -19,6 +19,18 @@
   /* Respeitar safe area do topo (notch) */
   padding-top: env(safe-area-inset-top, 0px);
   height: calc(70px + env(safe-area-inset-top, 0px));
+  /* Garantir que seja posicionado relativos à viewport, não ao body */
+  transform: translateZ(0);
+  will-change: transform;
+  /* Forçar novo contexto de empilhamento */
+  isolation: isolate;
+  /* Propriedades específicas para iOS Safari */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  /* Forçar renderização em camada separada no iOS */
+  -webkit-perspective: 1000;
+  perspective: 1000;
 }
 
 /* ===== SEÇÕES DA NAVBAR ===== */

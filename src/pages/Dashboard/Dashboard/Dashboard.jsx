@@ -495,7 +495,7 @@ const Dashboard = () => {
       </div>
 
       {/* FloatingButton */}
-      <FloatingButton onClick={handleOpenForm} />
+      <FloatingButton onClick={handleOpenForm} isHidden={isFormOpen} />
 
       {/* Formulário de Transação */}
       <SimpleTransactionForm

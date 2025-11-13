@@ -220,10 +220,12 @@ const Spreadsheet = () => {
 
   return (
     <div className="spreadsheet-page">
-      <div className="page-header">
+      <div className="dashboard-header">
         <div className="header-content">
-          <h1 className="page-title">Planilha Financeira</h1>
-          <p className="page-subtitle">Controle detalhado de gastos, metas e economias</p>
+          <h1 className="dashboard-title">Planilha Financeira</h1>
+          <p className="page-subtitle">
+            Controle detalhado de gastos, metas e economias
+          </p>
         </div>
       </div>
 

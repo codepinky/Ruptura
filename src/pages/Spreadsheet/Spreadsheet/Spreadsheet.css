@@ -3,10 +3,10 @@
   margin: 0 auto;
 }
 
-/* Header Section */
-.page-header {
+/* Header Section - Usando mesmo estilo do Dashboard */
+.dashboard-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: var(--space-6);
   gap: var(--space-6);
@@ -14,7 +14,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .page-header {
+  .dashboard-header {
     animation: slideInFromTop 0.8s ease-out;
   }
 }
@@ -28,7 +28,7 @@
   width: 100%;
 }
 
-.page-title {
+.dashboard-title {
   font-size: clamp(1.75rem, 4vw + 1rem, 3rem);
   font-weight: 800;
   color: var(--text-primary);
@@ -45,7 +45,7 @@
   text-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
 }
 
-.page-title::after {
+.dashboard-title::after {
   content: '';
   position: absolute;
   bottom: -8px;

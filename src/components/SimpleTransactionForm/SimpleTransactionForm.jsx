@@ -1,9 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { X, DollarSign, Calendar, Tag, FileText } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { X, DollarSign, Calendar, Tag, FileText, Globe } from 'lucide-react';
 import { useFinancial, TRANSACTION_TYPES } from '../../context/FinancialContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotification } from '../../context/NotificationContext';
 import './SimpleTransactionForm.css';
+
+// Lista de moedas suportadas
+const CURRENCIES = [
+  { code: 'BRL', name: 'Real', symbol: 'R$', locale: 'pt-BR' },
+  { code: 'USD', name: 'Dólar Americano', symbol: '$', locale: 'en-US' },
+  { code: 'EUR', name: 'Euro', symbol: '€', locale: 'de-DE' },
+  { code: 'GBP', name: 'Libra Esterlina', symbol: '£', locale: 'en-GB' },
+  { code: 'JPY', name: 'Iene Japonês', symbol: '¥', locale: 'ja-JP' },
+  { code: 'CAD', name: 'Dólar Canadense', symbol: 'C$', locale: 'en-CA' },
+  { code: 'AUD', name: 'Dólar Australiano', symbol: 'A$', locale: 'en-AU' },
+  { code: 'CHF', name: 'Franco Suíço', symbol: 'CHF', locale: 'de-CH' },
+  { code: 'CNY', name: 'Yuan Chinês', symbol: '¥', locale: 'zh-CN' },
+  { code: 'ARS', name: 'Peso Argentino', symbol: '$', locale: 'es-AR' }
+];
 
 const SimpleTransactionForm = ({ isOpen, onClose }) => {
   const { categories, addTransaction, transactions } = useFinancial();
@@ -19,7 +33,10 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
     notes: ''
   });
 
+  const [displayAmount, setDisplayAmount] = useState('');
+  const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]); // BRL como padrão
   const [errors, setErrors] = useState({});
+  const scrollPositionRef = useRef(0);
 
   // Resetar formulário quando abrir
   useEffect(() => {
@@ -32,11 +49,38 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
         date: new Date().toISOString().split('T')[0],
         notes: ''
       });
+      setDisplayAmount('');
+      setSelectedCurrency(CURRENCIES[0]); // Resetar para BRL
       setErrors({});
       
+      // Salvar posição do scroll atual
+      const currentScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+      scrollPositionRef.current = currentScrollY;
+      
+      // Detectar iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
       // Prevenir scroll do body quando modal estiver aberto
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
+      if (isIOS) {
+        // Para iOS, NÃO usar position: fixed no body para não quebrar position: fixed dos filhos
+        // Em vez disso, usar apenas overflow: hidden e prevenir scroll via eventos
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'none';
+        // Salvar a posição do scroll no atributo data para restaurar depois
+        document.body.setAttribute('data-scroll-y', currentScrollY.toString());
+        
+        // Também aplicar no html para iOS
+        document.documentElement.style.overflow = 'hidden';
+        document.documentElement.style.height = '100%';
+      } else {
+        // Para outros navegadores, usar a abordagem padrão com position: fixed
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'none';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${currentScrollY}px`;
+        document.body.style.width = '100%';
+      }
       
       // Função para resetar zoom quando input perder foco (iOS Safari)
       const handleBlur = () => {
@@ -73,9 +117,9 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
       });
       
       // Foco inicial no primeiro campo (acessibilidade)
-      const firstInput = document.querySelector('.simple-form input[type="text"]');
-      if (firstInput) {
-        setTimeout(() => firstInput.focus(), 100);
+      const firstSelect = document.querySelector('.simple-form select[name="categoryId"]');
+      if (firstSelect) {
+        setTimeout(() => firstSelect.focus(), 100);
       }
       
       // ESC para fechar
@@ -86,17 +130,91 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
       };
       document.addEventListener('keydown', handleEscape);
       
+      // Prevenir scroll no iOS quando modal estiver aberto
+      let preventScrollHandler = null;
+      
+      if (isIOS) {
+        preventScrollHandler = (e) => {
+          // Permitir scroll apenas dentro do conteúdo do modal
+          const modalContent = e.target.closest('.simple-form');
+          const isScrollable = modalContent && (
+            modalContent.scrollHeight > modalContent.clientHeight ||
+            e.target.closest('.form-content') ||
+            e.target.closest('input') ||
+            e.target.closest('select') ||
+            e.target.closest('textarea')
+          );
+          
+          // Se não estiver dentro do conteúdo scrollável do modal, prevenir scroll
+          if (!isScrollable) {
+            e.preventDefault();
+            return false;
+          }
+        };
+        
+        // Adicionar listener para prevenir scroll no body (especialmente iOS)
+        // Usar capture phase para interceptar antes que chegue aos elementos
+        document.body.addEventListener('touchmove', preventScrollHandler, { passive: false, capture: true });
+        document.body.addEventListener('wheel', preventScrollHandler, { passive: false, capture: true });
+        // Também prevenir no document para garantir
+        document.addEventListener('touchmove', preventScrollHandler, { passive: false, capture: true });
+      }
+      
       return () => {
         // Remover listeners
         inputs.forEach(input => {
           input.removeEventListener('blur', handleBlur);
         });
         document.removeEventListener('keydown', handleEscape);
+        if (isIOS && preventScrollHandler) {
+          document.body.removeEventListener('touchmove', preventScrollHandler, { capture: true });
+          document.body.removeEventListener('wheel', preventScrollHandler, { capture: true });
+          document.removeEventListener('touchmove', preventScrollHandler, { capture: true });
+        }
       };
     } else {
+      // Detectar iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
       // Restaurar scroll do body quando modal fechar
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      const savedScrollY = scrollPositionRef.current;
+      
+      if (isIOS) {
+        // Restaurar estilos do body para iOS
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.removeAttribute('data-scroll-y');
+        
+        // Restaurar estilos do html para iOS
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.height = '';
+        
+        // Restaurar posição do scroll no iOS
+        // Usar um pequeno delay para garantir que os estilos foram aplicados
+        setTimeout(() => {
+          if (savedScrollY > 0) {
+            window.scrollTo({
+              top: savedScrollY,
+              behavior: 'auto'
+            });
+          }
+        }, 0);
+      } else {
+        // Restaurar estilos do body para outros navegadores
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        
+        // Restaurar posição do scroll para outros navegadores
+        if (savedScrollY > 0) {
+          requestAnimationFrame(() => {
+            window.scrollTo(0, savedScrollY);
+          });
+        }
+      }
       
       // Resetar zoom quando modal fechar
       const viewport = document.querySelector('meta[name="viewport"]');
@@ -107,13 +225,81 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
     
     // Cleanup quando componente desmontar
     return () => {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
+      if (isIOS) {
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.removeAttribute('data-scroll-y');
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.height = '';
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+      }
     };
   }, [isOpen, onClose]);
 
+  const handleAmountChange = useCallback((e) => {
+    const input = e.target;
+    const value = input.value;
+    
+    // Remove tudo exceto números (incluindo o símbolo da moeda se presente)
+    const numbers = value.replace(/\D/g, '');
+    
+    if (!numbers) {
+      setDisplayAmount('');
+      setFormData(prev => ({ ...prev, amount: '' }));
+      if (errors.amount) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.amount;
+          return newErrors;
+        });
+      }
+      return;
+    }
+    
+    // Converte para número (divide por 100 para tratar como centavos)
+    // Isso permite que "500" vire "5,00" e "50000" vire "500,00"
+    const amount = parseFloat(numbers) / 100;
+    
+    // Formata usando o locale da moeda selecionada
+    const formatted = new Intl.NumberFormat(selectedCurrency.locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+    
+    // Salva o valor numérico
+    setDisplayAmount(formatted);
+    setFormData(prev => ({
+      ...prev,
+      amount: amount.toString()
+    }));
+    
+    // Limpar erro se existir
+    if (errors.amount) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.amount;
+        return newErrors;
+      });
+    }
+  }, [errors.amount, selectedCurrency]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Tratamento especial para o campo de valor
+    if (name === 'amount') {
+      handleAmountChange(e);
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -130,10 +316,6 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!formData.description.trim()) {
-      newErrors.description = 'Descrição é obrigatória';
-    }
     
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
       newErrors.amount = 'Valor deve ser maior que zero';
@@ -160,12 +342,12 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
 
     try {
       const transactionData = {
-        description: formData.description,
+        description: formData.description || '',
         amount: parseFloat(formData.amount),
         type: formData.type,
         categoryId: parseInt(formData.categoryId),
         date: formData.date,
-        notes: formData.notes || ''
+        notes: ''
       };
 
       // Adicionar nova transação (o ID será gerado pelo reducer)
@@ -198,44 +380,6 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
         </div>
         
         <form onSubmit={handleSubmit} className="form-content">
-          <div className="form-group">
-            <label>
-              <DollarSign size={16} />
-              Descrição *
-            </label>
-            <input
-              type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Ex: Supermercado, Salário..."
-              className={errors.description ? 'error' : ''}
-              aria-describedby={errors.description ? 'description-error' : undefined}
-              autoComplete="off"
-            />
-            {errors.description && <span id="description-error" className="error" role="alert">{errors.description}</span>}
-          </div>
-
-          <div className="form-group">
-            <label>
-              <DollarSign size={16} />
-              Valor *
-            </label>
-            <input
-              type="number"
-              name="amount"
-              value={formData.amount}
-              onChange={handleChange}
-              placeholder="0,00"
-              step="0.01"
-              min="0"
-              inputMode="decimal"
-              className={errors.amount ? 'error' : ''}
-              aria-describedby={errors.amount ? 'amount-error' : undefined}
-            />
-            {errors.amount && <span id="amount-error" className="error" role="alert">{errors.amount}</span>}
-          </div>
-
           <div className="form-group">
             <label>
               <Tag size={16} />
@@ -275,6 +419,63 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
 
           <div className="form-group">
             <label>
+              <Globe size={16} />
+              Moeda *
+            </label>
+            <select
+              name="currency"
+              value={selectedCurrency.code}
+              onChange={(e) => {
+                const currency = CURRENCIES.find(c => c.code === e.target.value);
+                if (currency) {
+                  setSelectedCurrency(currency);
+                  // Limpar e reformatar o valor quando mudar a moeda
+                  if (displayAmount) {
+                    const numbers = displayAmount.replace(/\D/g, '');
+                    if (numbers) {
+                      const amount = parseFloat(numbers) / 100;
+                      const formatted = new Intl.NumberFormat(currency.locale, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      }).format(amount);
+                      setDisplayAmount(formatted);
+                    }
+                  }
+                }
+              }}
+            >
+              {CURRENCIES.map(currency => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.name} ({currency.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>
+              <DollarSign size={16} />
+              Valor em {selectedCurrency.name} ({selectedCurrency.code}) *
+            </label>
+            <div className="amount-input-wrapper">
+              <span className="currency-symbol">{selectedCurrency.symbol}</span>
+              <input
+                type="text"
+                name="amount"
+                value={displayAmount}
+                onChange={handleAmountChange}
+                placeholder="0,00"
+                inputMode="numeric"
+                className={`amount-input ${errors.amount ? 'error' : ''}`}
+                aria-describedby={errors.amount ? 'amount-error' : undefined}
+                autoComplete="off"
+              />
+            </div>
+            {errors.amount && <span id="amount-error" className="error" role="alert">{errors.amount}</span>}
+          </div>
+
+          <div className="form-group date-input-group">
+            <label>
               <Calendar size={16} />
               Data *
             </label>
@@ -292,15 +493,18 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
           <div className="form-group">
             <label>
               <FileText size={16} />
-              Observações
+              Descrição
             </label>
             <textarea
-              name="notes"
-              value={formData.notes}
+              name="description"
+              value={formData.description}
               onChange={handleChange}
-              placeholder="Observações opcionais..."
+              placeholder="Ex: Supermercado, Salário..."
               rows={3}
+              className={errors.description ? 'error' : ''}
+              aria-describedby={errors.description ? 'description-error' : undefined}
             />
+            {errors.description && <span id="description-error" className="error" role="alert">{errors.description}</span>}
           </div>
 
           <div className="form-actions">

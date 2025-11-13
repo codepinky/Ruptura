@@ -16,7 +16,7 @@ const Sidebar = ({ sidebarOpen, onNavigate }) => {
   const location = useLocation();
 
   const menuItems = [
-    { path: '/', icon: Home, label: 'Dashboard', exact: true },
+    { path: '/', icon: Home, label: 'Visão Geral', exact: true },
     { path: '/transactions', icon: CreditCard, label: 'Transações' },
     { path: '/spreadsheet', icon: Table, label: 'Planilha' },
     { path: '/categories', icon: Tag, label: 'Categorias' },

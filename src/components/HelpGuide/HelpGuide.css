@@ -1,35 +1,80 @@
+/* Botão de Menu Flutuante - Versão Simplificada e Robusta */
 .help-button {
+  /* Posicionamento fixo relativo à viewport */
   position: fixed;
   bottom: 2rem;
   left: 2rem;
+  z-index: 100;
+  
+  /* Dimensões */
   width: 70px;
   height: 70px;
-  background: linear-gradient(135deg, var(--color-primary), #2563eb);
-  color: var(--text-inverse);
+  min-width: 70px;
+  min-height: 70px;
+  
+  /* Estilo visual */
+  background: linear-gradient(135deg, var(--color-primary, #3b82f6), #2563eb);
+  color: var(--text-inverse, white);
   border: none;
   border-radius: 50%;
-  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  
+  /* Layout */
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  transition: all 0.3s ease;
-  z-index: 100;
+  cursor: pointer;
+  
+  /* Transições suaves */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  /* Acessibilidade */
+  outline: none;
+  margin: 0;
+  padding: 0;
+  
+  /* Prevenir seleção de texto */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
+/* Efeito hover */
 .help-button:hover {
   transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
 }
 
+/* Efeito active */
+.help-button:active {
+  transform: scale(0.95);
+}
 
-/* Responsividade */
+/* Estado de foco para acessibilidade */
+.help-button:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 4px;
+}
+
+/* Responsividade - Mobile */
 @media (max-width: 768px) {
   .help-button {
-    bottom: 1rem;
-    left: 1rem;
-    width: 65px;
-    height: 65px;
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+    /* Respeitar safe area no iOS - usar calc para garantir espaço mínimo */
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    left: calc(1rem + env(safe-area-inset-left, 0px));
   }
 }
 
+/* Mobile pequeno */
+@media (max-width: 480px) {
+  .help-button {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+  }
+}

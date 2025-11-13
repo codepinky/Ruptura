@@ -1,81 +1,90 @@
+/* Botão Flutuante de Adicionar - Mesmo comportamento do menu, mas à direita */
 .floating-button {
+  /* Posicionamento fixo relativo à viewport */
   position: fixed !important;
   bottom: 2rem;
-  bottom: calc(2rem + env(safe-area-inset-bottom, 0px)); /* Respeitar safe area do bottom */
   right: 2rem !important;
-  right: calc(2rem + env(safe-area-inset-right, 0px)) !important; /* Respeitar safe area lateral */
   left: auto !important;
+  z-index: 100;
+  
+  /* Dimensões */
   width: 70px;
   height: 70px;
+  min-width: 70px;
+  min-height: 70px;
+  
+  /* Estilo visual */
   background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #8b5cf6));
   color: white;
   border: none;
   border-radius: 50%;
-  cursor: pointer;
-  display: none; /* Ocultar por padrão (desktop) */
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  
+  /* Layout */
+  display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
-  font-size: 0;
+  cursor: pointer;
+  
+  /* Transições suaves */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  /* Acessibilidade */
   outline: none;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  
+  /* Prevenir seleção de texto */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.floating-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.floating-button:hover::before {
-  left: 100%;
-}
-
+/* Efeito hover */
 .floating-button:hover {
-  transform: scale(1.1) translateY(-2px);
-  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.6), 0 4px 8px rgba(0, 0, 0, 0.15);
-  background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #8b5cf6));
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
 }
 
+/* Efeito active */
 .floating-button:active {
   transform: scale(0.95);
 }
 
-.floating-button:focus {
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 8px 24px rgba(59, 130, 246, 0.4);
+/* Estado de foco para acessibilidade */
+.floating-button:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 4px;
 }
 
-/* Responsividade */
+/* Estado oculto */
+.floating-button.hidden {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0);
+}
+
+/* Responsividade - Mobile */
 @media (max-width: 768px) {
   .floating-button {
-    display: flex !important; /* Mostrar apenas no mobile */
-    bottom: 1rem;
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); /* Respeitar safe area do bottom */
-    right: 1rem !important;
-    right: calc(1rem + env(safe-area-inset-right, 0px)) !important; /* Respeitar safe area lateral */
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+    /* Respeitar safe area no iOS - usar calc para garantir espaço mínimo */
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    right: calc(1rem + env(safe-area-inset-right, 0px)) !important;
     left: auto !important;
-    width: 65px;
-    height: 65px;
   }
 }
 
+/* Mobile pequeno */
 @media (max-width: 480px) {
   .floating-button {
-    bottom: 1rem;
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); /* Respeitar safe area do bottom */
-    right: 1rem !important;
-    right: calc(1rem + env(safe-area-inset-right, 0px)) !important; /* Respeitar safe area lateral */
-    left: auto !important;
-    width: 65px;
-    height: 65px;
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
   }
 }
