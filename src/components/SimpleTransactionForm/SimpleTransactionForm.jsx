@@ -38,6 +38,40 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
       
+      // Função para resetar zoom quando input perder foco (iOS Safari)
+      const handleBlur = () => {
+        // Aguardar o teclado fechar completamente
+        setTimeout(() => {
+          // Resetar zoom usando viewport meta tag
+          const viewport = document.querySelector('meta[name="viewport"]');
+          if (viewport && window.visualViewport) {
+            const currentScale = window.visualViewport.scale;
+            // Se houver zoom (scale > 1), resetar
+            if (currentScale > 1) {
+              const originalContent = viewport.getAttribute('content');
+              // Forçar reset do zoom
+              viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+              
+              // Forçar reflow para aplicar a mudança
+              void document.body.offsetHeight;
+              
+              // Restaurar configuração original após resetar
+              requestAnimationFrame(() => {
+                if (viewport) {
+                  viewport.setAttribute('content', originalContent || 'width=device-width, initial-scale=1.0, viewport-fit=cover');
+                }
+              });
+            }
+          }
+        }, 350);
+      };
+      
+      // Adicionar listeners de blur em todos os inputs quando modal abrir
+      const inputs = document.querySelectorAll('.simple-form input, .simple-form select, .simple-form textarea');
+      inputs.forEach(input => {
+        input.addEventListener('blur', handleBlur);
+      });
+      
       // Foco inicial no primeiro campo (acessibilidade)
       const firstInput = document.querySelector('.simple-form input[type="text"]');
       if (firstInput) {
@@ -53,12 +87,22 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
       document.addEventListener('keydown', handleEscape);
       
       return () => {
+        // Remover listeners
+        inputs.forEach(input => {
+          input.removeEventListener('blur', handleBlur);
+        });
         document.removeEventListener('keydown', handleEscape);
       };
     } else {
       // Restaurar scroll do body quando modal fechar
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
+      
+      // Resetar zoom quando modal fechar
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
+      }
     }
     
     // Cleanup quando componente desmontar

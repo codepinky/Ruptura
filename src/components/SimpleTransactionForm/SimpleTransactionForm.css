@@ -18,6 +18,9 @@
   touch-action: none;
   isolation: isolate;
   contain: layout style paint;
+  /* Prevenir zoom no modal */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 @media (min-width: 768px) {
@@ -153,10 +156,14 @@
   min-height: 44px;
   border: 1px solid #d1d5db;
   border-radius: var(--radius-sm);
-  font-size: clamp(0.9rem, 1.2vw + 0.5rem, 0.875rem);
+  /* Garantir font-size mínimo de 16px para prevenir zoom no iOS Safari */
+  font-size: clamp(1rem, 1.2vw + 0.5rem, 1rem);
   transition: all 0.2s ease;
   box-sizing: border-box;
   line-height: var(--line-height-base);
+  /* Prevenir zoom no iOS */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 .form-group textarea {
@@ -365,9 +372,18 @@
     overflow-x: hidden;
   }
   
-  /* Em mobile, garantir que date picker não vaze */
+  /* Em mobile, garantir que date picker não vaze e tenha font-size mínimo de 16px */
   .form-group input[type="date"] {
-    font-size: clamp(1rem, 4vw, 1rem);
+    font-size: 1rem !important; /* Forçar 16px para prevenir zoom */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Garantir que todos os inputs tenham 16px mínimo em mobile */
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 1rem !important; /* Forçar 16px para prevenir zoom no iOS */
   }
   
   .form-header {

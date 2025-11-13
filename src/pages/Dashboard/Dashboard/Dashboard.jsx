@@ -6,7 +6,7 @@ import TransactionCard from '../../../components/Cards/TransactionCard/Transacti
 import ExpenseChart from '../../../components/Charts/ExpenseChart/ExpenseChart';
 import SimpleTransactionForm from '../../../components/SimpleTransactionForm/SimpleTransactionForm';
 import FloatingButton from '../../../components/FloatingButton/FloatingButton';
-import { TrendingUp, TrendingDown, Wallet, Calendar, ChevronDown, Plus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Calendar, ChevronDown, Plus, Clock } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -267,11 +267,15 @@ const Dashboard = () => {
       const today = new Date();
       const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
       const daysPassed = today.getDate();
+      const daysRemaining = daysInMonth - daysPassed;
       const monthProgress = (daysPassed / daysInMonth) * 100;
 
       return {
         ...projection,
-        monthProgress: selectedPeriod === 'month' ? monthProgress : null
+        monthProgress: selectedPeriod === 'month' ? monthProgress : null,
+        daysPassed,
+        daysRemaining,
+        daysInMonth
       };
     }
     return null;
@@ -388,15 +392,18 @@ const Dashboard = () => {
         <div className="projection-card">
           <div className="projection-header">
             <h3 className="projection-title">Projeção do Mês</h3>
-            <div className="projection-progress">
-              <span className="progress-label">Progresso do mês</span>
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
-                  style={{ width: `${projectionData.monthProgress}%` }}
-                />
+            <div className="projection-status">
+              <div className="status-item">
+                <Clock size={16} />
+                <span className="status-label">Dias restantes</span>
+                <span className="status-value">{projectionData.daysRemaining}</span>
               </div>
-              <span className="progress-value">{Math.round(projectionData.monthProgress)}%</span>
+              <div className="status-divider"></div>
+              <div className="status-item">
+                <Calendar size={16} />
+                <span className="status-label">Mês decorrido</span>
+                <span className="status-value">{Math.round(projectionData.monthProgress)}%</span>
+              </div>
             </div>
           </div>
           <div className="projection-content">

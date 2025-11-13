@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, memo } from 'react';
-import { ArrowUpRight, ArrowDownLeft, MoreVertical, Edit, Copy, Eye, Trash2 } from 'lucide-react';
+import React, { useRef, memo } from 'react';
+import { ArrowUpRight, ArrowDownLeft, MoreVertical } from 'lucide-react';
 import './TransactionCard.css';
 
 const TransactionCard = memo(({ 
@@ -12,8 +12,7 @@ const TransactionCard = memo(({
   isSelected = false,
   onSelect = null
 }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef(null);
+  const selectRef = useRef(null);
   const isIncome = transaction.type === 'income';
   const Icon = isIncome ? ArrowUpRight : ArrowDownLeft;
   const iconColor = isIncome ? '#10B981' : '#EF4444';
@@ -49,25 +48,10 @@ const TransactionCard = memo(({
     return formatDate(dateString);
   };
 
-  // Fechar menu ao clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    if (isMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isMenuOpen]);
-
-  const handleMenuAction = (action) => {
-    setIsMenuOpen(false);
+  const handleMenuChange = (e) => {
+    const action = e.target.value;
+    e.target.value = ''; // Reset para permitir selecionar a mesma opção novamente
+    
     switch (action) {
       case 'edit':
         onEdit?.(transaction);
@@ -119,47 +103,30 @@ const TransactionCard = memo(({
         {isIncome ? '+' : '-'}{formatAmount(transaction.amount)}
       </div>
       
-      <div className="transaction-actions" ref={menuRef}>
-        <button 
-          className="action-button" 
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Menu de ações"
-        >
-          <MoreVertical size={16} />
-        </button>
-        
-        {isMenuOpen && (
-          <div className="action-menu">
-            <button 
-              className="menu-item"
-              onClick={() => handleMenuAction('edit')}
-            >
-              <Edit size={16} />
-              <span>Editar</span>
-            </button>
-            <button 
-              className="menu-item"
-              onClick={() => handleMenuAction('duplicate')}
-            >
-              <Copy size={16} />
-              <span>Duplicar</span>
-            </button>
-            <button 
-              className="menu-item"
-              onClick={() => handleMenuAction('details')}
-            >
-              <Eye size={16} />
-              <span>Ver Detalhes</span>
-            </button>
-            <button 
-              className="menu-item delete"
-              onClick={() => handleMenuAction('delete')}
-            >
-              <Trash2 size={16} />
-              <span>Excluir</span>
-            </button>
-          </div>
-        )}
+      <div className="transaction-actions">
+        <div className="native-menu-wrapper">
+          <button 
+            className="action-button-native"
+            onClick={() => selectRef.current?.click()}
+            aria-label="Menu de ações"
+            type="button"
+          >
+            <MoreVertical size={16} />
+          </button>
+          <select
+            ref={selectRef}
+            className="native-action-select"
+            onChange={handleMenuChange}
+            value=""
+            aria-label="Menu de ações"
+          >
+            <option value="" disabled hidden>Selecione uma ação</option>
+            <option value="edit">Editar</option>
+            <option value="duplicate">Duplicar</option>
+            <option value="details">Ver Detalhes</option>
+            <option value="delete">Excluir</option>
+          </select>
+        </div>
       </div>
     </div>
   );

@@ -170,6 +170,77 @@
   outline-offset: 2px;
 }
 
+/* Export Dropdown Menu */
+.export-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.export-btn svg:last-child {
+  transition: transform 0.3s ease;
+}
+
+.export-dropdown.active .export-btn svg:last-child {
+  transform: rotate(180deg);
+}
+
+.export-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+  z-index: 1000;
+  overflow: hidden;
+  display: none;
+  animation: slideDown 0.2s ease-out;
+}
+
+.export-dropdown.active .export-menu {
+  display: block;
+}
+
+.export-menu-item {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-align: left;
+  min-height: 44px;
+}
+
+.export-menu-item:hover {
+  background: var(--bg-hover);
+  color: var(--color-primary);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .financial-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

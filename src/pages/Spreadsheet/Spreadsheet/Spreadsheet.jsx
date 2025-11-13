@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import { 
   TrendingUp, 
@@ -10,7 +10,8 @@ import {
   Download,
   Plus,
   PlusCircle,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react';
 import TransactionForm from '../../../components/Forms/TransactionForm/TransactionForm';
 import GoalForm from '../../../components/Goals/GoalForm/GoalForm';
@@ -18,6 +19,7 @@ import SavingForm from '../../../components/Savings/SavingForm/SavingForm';
 import CategoryExpenseCard from '../../../components/Cards/CategoryExpenseCard/CategoryExpenseCard';
 import CategoryAnalysisCard from '../../../components/Cards/CategoryAnalysisCard/CategoryAnalysisCard';
 import FloatingButton from '../../../components/FloatingButton/FloatingButton';
+import { exportToCSV, exportToPDF } from '../../../utils/exportUtils';
 import './Spreadsheet.css';
 
 const Spreadsheet = () => {
@@ -46,6 +48,24 @@ const Spreadsheet = () => {
   const [addingMoneyToGoal, setAddingMoneyToGoal] = useState(null);
   const [addingMoneyToSaving, setAddingMoneyToSaving] = useState(null);
   const [amountToAdd, setAmountToAdd] = useState('');
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+
+  // Fechar menu de exportação ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isExportMenuOpen && !event.target.closest('.export-dropdown')) {
+        setIsExportMenuOpen(false);
+      }
+    };
+
+    if (isExportMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExportMenuOpen]);
 
   // Dados filtrados por mês
   const monthlyData = useMemo(() => {
@@ -238,14 +258,43 @@ const Spreadsheet = () => {
         </div>
         
         <div className="toolbar-actions">
-          <button 
-            className="action-button export-btn"
-            aria-label="Exportar dados"
-            title="Exportar dados financeiros"
-          >
-            <Download size={20} />
-            <span>Exportar</span>
-          </button>
+          <div className={`export-dropdown ${isExportMenuOpen ? 'active' : ''}`}>
+            <button 
+              className="action-button export-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExportMenuOpen(!isExportMenuOpen);
+              }}
+              aria-label="Exportar dados"
+              title="Exportar dados financeiros"
+            >
+              <Download size={20} />
+              <span>Exportar</span>
+              <ChevronDown size={14} />
+            </button>
+            {isExportMenuOpen && (
+              <div className="export-menu">
+                <button 
+                  className="export-menu-item"
+                  onClick={() => {
+                    exportToCSV(monthlyData.transactions, categories);
+                    setIsExportMenuOpen(false);
+                  }}
+                >
+                  <span>Exportar CSV</span>
+                </button>
+                <button 
+                  className="export-menu-item"
+                  onClick={() => {
+                    exportToPDF(monthlyData.transactions, categories);
+                    setIsExportMenuOpen(false);
+                  }}
+                >
+                  <span>Exportar PDF</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

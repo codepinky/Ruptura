@@ -4,6 +4,7 @@ import { FinancialProvider } from './context/FinancialContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import Layout from './components/Layout/Layout';
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import ToastContainer from './components/Toast/ToastContainer';
 import Dashboard from './pages/Dashboard/Dashboard/Dashboard';
 import Transactions from './pages/Transactions/Transactions/Transactions';
@@ -19,6 +20,7 @@ function App() {
       <NotificationProvider>
         <FinancialProvider>
           <Router>
+            <ScrollToTop />
             <Layout>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
