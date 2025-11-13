@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Tag, DollarSign, Calendar, Bell, FileText, ChevronDown } from 'lucide-react';
+import { X, Tag, DollarSign, Calendar, FileText, Briefcase } from 'lucide-react';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
 import './BudgetForm.css';
 
@@ -13,6 +13,8 @@ const BudgetForm = ({
   const { categories } = useFinancial();
 
   const [formData, setFormData] = useState({
+    budgetType: 'project', // 'project' ou 'category'
+    name: '',
     categoryId: '',
     limit: '',
     period: 'monthly',
@@ -20,7 +22,6 @@ const BudgetForm = ({
     year: new Date().getFullYear(),
     startDate: '',
     endDate: '',
-    alertsEnabled: true,
     notes: ''
   });
 
@@ -69,6 +70,8 @@ const BudgetForm = ({
   useEffect(() => {
     if (budget) {
       setFormData({
+        budgetType: budget.name ? 'project' : 'category',
+        name: budget.name || '',
         categoryId: budget.categoryId || '',
         limit: budget.limit || '',
         period: budget.period || 'monthly',
@@ -76,12 +79,13 @@ const BudgetForm = ({
         year: budget.year || new Date().getFullYear(),
         startDate: budget.startDate || '',
         endDate: budget.endDate || '',
-        alertsEnabled: budget.alertsEnabled !== undefined ? budget.alertsEnabled : true,
         notes: budget.notes || ''
       });
     } else {
       const now = new Date();
       setFormData({
+        budgetType: 'project',
+        name: '',
         categoryId: '',
         limit: '',
         period: 'monthly',
@@ -89,7 +93,6 @@ const BudgetForm = ({
         year: now.getFullYear(),
         startDate: '',
         endDate: '',
-        alertsEnabled: true,
         notes: ''
       });
     }
@@ -97,10 +100,19 @@ const BudgetForm = ({
   }, [budget, isOpen]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      
+      // Se mudou o tipo para 'category', limpar o nome
+      if (field === 'budgetType' && value === 'category') {
+        newData.name = '';
+      }
+      
+      return newData;
+    });
     
     if (errors[field]) {
       setErrors(prev => ({
@@ -112,6 +124,10 @@ const BudgetForm = ({
 
   const validateForm = () => {
     const newErrors = {};
+
+    if (formData.budgetType === 'project' && (!formData.name || formData.name.trim() === '')) {
+      newErrors.name = 'Nome do projeto é obrigatório';
+    }
 
     if (!formData.categoryId) {
       newErrors.categoryId = 'Selecione uma categoria';
@@ -142,10 +158,10 @@ const BudgetForm = ({
     
     if (validateForm()) {
       const budgetData = {
+        name: formData.name.trim() || undefined,
         categoryId: parseInt(formData.categoryId),
         limit: parseFloat(formData.limit),
         period: formData.period,
-        alertsEnabled: formData.alertsEnabled,
         notes: formData.notes.trim()
       };
 
@@ -165,17 +181,18 @@ const BudgetForm = ({
   };
 
   const handleClose = () => {
-    setFormData({
-      categoryId: '',
-      limit: '',
-      period: 'monthly',
-      month: new Date().getMonth(),
-      year: new Date().getFullYear(),
-      startDate: '',
-      endDate: '',
-      alertsEnabled: true,
-      notes: ''
-    });
+      setFormData({
+        budgetType: 'project',
+        name: '',
+        categoryId: '',
+        limit: '',
+        period: 'monthly',
+        month: new Date().getMonth(),
+        year: new Date().getFullYear(),
+        startDate: '',
+        endDate: '',
+        notes: ''
+      });
     setErrors({});
     onClose();
   };
@@ -209,6 +226,60 @@ const BudgetForm = ({
         </div>
 
         <form onSubmit={handleSubmit} className="form">
+          <div className="form-group">
+            <label className="form-label">
+              <Briefcase size={20} />
+              Tipo de Orçamento
+            </label>
+            <div className="budget-type-options">
+              <label className={`budget-type-option ${formData.budgetType === 'project' ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="budgetType"
+                  value="project"
+                  checked={formData.budgetType === 'project'}
+                  onChange={(e) => handleInputChange('budgetType', e.target.value)}
+                />
+                <div className="option-content">
+                  <span className="option-title">Projeto Específico</span>
+                  <span className="option-description">Reforma, viagem, evento...</span>
+                </div>
+              </label>
+              
+              <label className={`budget-type-option ${formData.budgetType === 'category' ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="budgetType"
+                  value="category"
+                  checked={formData.budgetType === 'category'}
+                  onChange={(e) => handleInputChange('budgetType', e.target.value)}
+                />
+                <div className="option-content">
+                  <span className="option-title">Limite por Categoria</span>
+                  <span className="option-description">Controle de gastos mensais</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {formData.budgetType === 'project' && (
+            <div className="form-group">
+              <label htmlFor="name" className="form-label">
+                <Briefcase size={20} />
+                Nome do Projeto
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className={`form-input ${errors.name ? 'error' : ''}`}
+                placeholder="Ex: Reforma da Cozinha, Viagem para Europa..."
+              />
+              {errors.name && <span className="error-message">{errors.name}</span>}
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="categoryId" className="form-label">
               <Tag size={20} />
@@ -378,26 +449,6 @@ const BudgetForm = ({
               </div>
             </div>
           )}
-
-          <div className="form-group">
-            <label className="form-label">
-              <Bell size={20} />
-              Notificações
-            </label>
-            <div className="switch-container">
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={formData.alertsEnabled}
-                  onChange={(e) => handleInputChange('alertsEnabled', e.target.checked)}
-                />
-                <span className="slider"></span>
-              </label>
-              <span className="switch-label">
-                Receber alertas quando próximo ou exceder o limite
-              </span>
-            </div>
-          </div>
 
           <div className="form-group">
             <label htmlFor="notes" className="form-label">
