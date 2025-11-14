@@ -118,7 +118,7 @@ const MonthView = ({ currentDate, selectedDate, onDateSelect, onItemClick, onSho
               
               {day.isCurrentMonth && (
                 <div className="day-items">
-                  {allItems.slice(0, allItems.length >= 3 ? 2 : allItems.length).map((item) => {
+                  {allItems.slice(0, 3).map((item) => {
                     const truncatedTitle = item.title.length > 12 
                       ? item.title.substring(0, 12) + '...' 
                       : item.title;
@@ -137,7 +137,7 @@ const MonthView = ({ currentDate, selectedDate, onDateSelect, onItemClick, onSho
                       </div>
                     );
                   })}
-                  {allItems.length >= 3 && (
+                  {allItems.length > 3 && (
                     <div 
                       key="more-items"
                       className="day-item-more clickable"
