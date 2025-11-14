@@ -1,0 +1,227 @@
+.calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+
+.calendar-nav-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.calendar-nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.nav-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-secondary);
+}
+
+.today-btn {
+  gap: var(--space-2);
+  font-weight: 500;
+}
+
+.nav-arrows {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.nav-arrows .nav-btn {
+  padding: var(--space-2);
+  min-width: 36px;
+}
+
+.calendar-nav-date {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  min-width: 200px;
+}
+
+.view-selector {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--bg-secondary);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-primary);
+}
+
+.view-btn {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.view-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.view-btn.active {
+  background: var(--color-primary);
+  color: var(--text-inverse);
+}
+
+.view-btn.active:hover {
+  background: var(--color-secondary);
+}
+
+/* Navegação mobile para visualização mensal */
+.calendar-nav-mobile {
+  width: 100%;
+}
+
+.calendar-nav-top {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-nav-month {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.month-dropdown-icon {
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.month-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.month-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.month-scroll {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  min-width: max-content;
+}
+
+.month-chip {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: none;
+  border-radius: 20px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.month-chip:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.month-chip.active {
+  background: var(--color-primary);
+  color: var(--text-inverse);
+}
+
+.month-chip.year-chip {
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: default;
+}
+
+.month-chip.year-chip:hover {
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .calendar-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calendar-nav-left,
+  .calendar-nav-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .calendar-nav-date {
+    font-size: 1rem;
+    min-width: auto;
+    text-align: center;
+  }
+
+  .view-selector {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .view-btn {
+    flex: 1;
+  }
+
+  .calendar-nav-month {
+    font-size: 1.125rem;
+  }
+
+  .month-scroll {
+    padding: var(--space-2);
+  }
+
+  .month-chip {
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.8rem;
+  }
+}
+

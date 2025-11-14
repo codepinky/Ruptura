@@ -1,0 +1,210 @@
+/* Calendar Page Styles - Mobile First */
+.calendar-page {
+  width: 100vw;
+  min-height: 100vh;
+  padding: var(--space-2) 0;
+  background: var(--bg-secondary);
+  margin-left: calc(-1rem - env(safe-area-inset-left, 0px));
+  margin-right: calc(-1rem - env(safe-area-inset-right, 0px));
+  position: relative;
+  padding-bottom: 80px; /* Espaço para o FAB */
+}
+
+.calendar-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  padding: 0 var(--space-2);
+}
+
+.calendar-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.calendar-content {
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: 0;
+  padding: var(--space-2) var(--space-1);
+  box-shadow: none;
+}
+
+.calendar-quick-actions {
+  position: fixed;
+  bottom: 80px;
+  right: var(--space-4);
+  display: none; /* Escondido por padrão (mobile first) */
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 100;
+  animation: slideInRight 0.3s ease;
+}
+
+/* FAB Mobile - Visível por padrão (mobile first) */
+.calendar-fab-mobile {
+  display: block;
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: 1000;
+}
+
+.fab-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: none;
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.fab-button:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
+}
+
+.fab-button:active {
+  transform: scale(0.95);
+}
+
+.fab-menu {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 120px;
+  animation: slideUpFade 0.3s ease;
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fab-menu-item {
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-md);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.fab-menu-item:hover {
+  background: var(--bg-hover);
+  transform: translateX(-4px);
+}
+
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
+}
+
+.quick-action-btn:hover {
+  background: var(--color-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Mobile - Ajustes para telas muito pequenas */
+@media (max-width: 480px) {
+  .calendar-page {
+    margin-left: calc(-0.75rem - env(safe-area-inset-left, 0px));
+    margin-right: calc(-0.75rem - env(safe-area-inset-right, 0px));
+  }
+}
+
+@media (max-width: 375px) {
+  .calendar-page {
+    margin-left: calc(-0.5rem - env(safe-area-inset-left, 0px));
+    margin-right: calc(-0.5rem - env(safe-area-inset-right, 0px));
+  }
+}
+
+/* Tablet - Ajustes intermediários */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .calendar-page {
+    margin-left: calc(-1.5rem - env(safe-area-inset-left, 0px));
+    margin-right: calc(-1.5rem - env(safe-area-inset-right, 0px));
+  }
+}
+
+/* Desktop - Ajustes para telas maiores */
+@media (min-width: 769px) {
+  .calendar-page {
+    padding: var(--space-4) 0;
+    margin-left: calc(-2rem - env(safe-area-inset-left, 0px));
+    margin-right: calc(-2rem - env(safe-area-inset-right, 0px));
+    padding-bottom: 0; /* Remove espaço do FAB no desktop */
+  }
+
+  .calendar-header {
+    padding: 0 var(--space-4);
+  }
+
+  .calendar-title {
+    font-size: 2rem;
+  }
+
+  .calendar-content {
+    padding: var(--space-4) var(--space-2);
+  }
+
+  /* Esconder FAB mobile e mostrar quick actions no desktop */
+  .calendar-fab-mobile {
+    display: none;
+  }
+
+  .calendar-quick-actions {
+    display: flex;
+  }
+}
+

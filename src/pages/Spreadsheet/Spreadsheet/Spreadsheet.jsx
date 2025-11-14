@@ -8,12 +8,11 @@ import {
   Calendar,
   Filter,
   Download,
-  Plus,
   PlusCircle,
   X,
   ChevronDown
 } from 'lucide-react';
-import TransactionForm from '../../../components/Forms/TransactionForm/TransactionForm';
+import SimpleTransactionForm from '../../../components/SimpleTransactionForm/SimpleTransactionForm';
 import GoalForm from '../../../components/Goals/GoalForm/GoalForm';
 import SavingForm from '../../../components/Savings/SavingForm/SavingForm';
 import CategoryExpenseCard from '../../../components/Cards/CategoryExpenseCard/CategoryExpenseCard';
@@ -411,13 +410,6 @@ const Spreadsheet = () => {
           <div className="goals-tab">
             <div className="section-header">
               <h2>Metas Financeiras</h2>
-              <button 
-                className="add-goal-button"
-                onClick={() => setIsGoalFormOpen(true)}
-              >
-                <Plus size={16} />
-                Nova Meta
-              </button>
             </div>
             
             <div className="goals-grid">
@@ -505,13 +497,6 @@ const Spreadsheet = () => {
           <div className="savings-tab">
             <div className="section-header">
               <h2>Economias e Poupança</h2>
-              <button 
-                className="add-saving-button"
-                onClick={() => setIsSavingFormOpen(true)}
-              >
-                <Plus size={16} />
-                Nova Economia
-              </button>
             </div>
             
             <div className="savings-grid">
@@ -578,7 +563,7 @@ const Spreadsheet = () => {
       </div>
 
       {/* Modais */}
-      <TransactionForm
+      <SimpleTransactionForm
         isOpen={isTransactionFormOpen}
         onClose={() => setIsTransactionFormOpen(false)}
       />
@@ -719,7 +704,15 @@ const Spreadsheet = () => {
       )}
 
       {/* FloatingButton */}
-      <FloatingButton onClick={() => setIsTransactionFormOpen(true)} />
+      <FloatingButton onClick={() => {
+        if (activeTab === 'goals') {
+          setIsGoalFormOpen(true);
+        } else if (activeTab === 'savings') {
+          setIsSavingFormOpen(true);
+        } else {
+          setIsTransactionFormOpen(true);
+        }
+      }} />
     </div>
   );
 };
