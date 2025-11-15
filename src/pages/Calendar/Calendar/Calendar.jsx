@@ -1,158 +1,295 @@
-import React, { useState } from 'react';
-import { Menu } from 'lucide-react';
-import CalendarHeader from './CalendarHeader';
-import CalendarSidebar from './CalendarSidebar';
-import MonthView from './MonthView';
-import WeekView from './WeekView';
-import DayView from './DayView';
+import React, { useState, useEffect } from 'react';
+import { useCalendar } from '../../../context/CalendarContext';
+import { useNotification } from '../../../context/NotificationContext';
+import CalendarNav from '../../../components/Calendar/CalendarNav/CalendarNav';
+import MonthView from '../../../components/Calendar/MonthView/MonthView';
+import WeekView from '../../../components/Calendar/WeekView/WeekView';
+import DayView from '../../../components/Calendar/DayView/DayView';
 import EventForm from '../../../components/Calendar/EventForm/EventForm';
+import TaskForm from '../../../components/Calendar/TaskForm/TaskForm';
+import ReminderForm from '../../../components/Calendar/ReminderForm/ReminderForm';
 import NoteForm from '../../../components/Calendar/NoteForm/NoteForm';
+import EventDetailModal from '../../../components/Calendar/EventDetailModal/EventDetailModal';
+import { Plus } from 'lucide-react';
 import './Calendar.css';
 
+const VIEW_TYPES = {
+  MONTH: 'month',
+  WEEK: 'week',
+  DAY: 'day'
+};
+
+const ITEM_TYPES = {
+  EVENT: 'event',
+  TASK: 'task',
+  REMINDER: 'reminder',
+  NOTE: 'note'
+};
+
 const Calendar = () => {
+  const { getUpcomingReminders, updateReminder } = useCalendar();
+  const { info } = useNotification();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState('month');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showEventForm, setShowEventForm] = useState(false);
-  const [showNoteForm, setShowNoteForm] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [selectedNote, setSelectedNote] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [viewType, setViewType] = useState(VIEW_TYPES.MONTH);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formType, setFormType] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
 
-  const handlePrevious = () => {
-    const newDate = new Date(currentDate);
-    if (view === 'month') {
-      newDate.setMonth(newDate.getMonth() - 1);
-    } else if (view === 'week') {
-      newDate.setDate(newDate.getDate() - 7);
-    } else {
-      newDate.setDate(newDate.getDate() - 1);
+  // Verificar lembretes pendentes a cada minuto
+  useEffect(() => {
+    const checkReminders = () => {
+      const upcomingReminders = getUpcomingReminders();
+      
+      upcomingReminders.forEach(reminder => {
+        if (!reminder.notified) {
+          info(`🔔 ${reminder.title}${reminder.description ? ': ' + reminder.description : ''}`);
+          
+          // Marcar como notificado
+          updateReminder({
+            ...reminder,
+            notified: true
+          });
+        }
+      });
+    };
+
+    // Verificar imediatamente
+    checkReminders();
+
+    // Verificar a cada minuto
+    const interval = setInterval(checkReminders, 60000);
+
+    return () => clearInterval(interval);
+  }, [getUpcomingReminders, updateReminder, info]);
+
+  // Fechar menu ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showCreateMenu && !event.target.closest('.calendar-fab-mobile')) {
+        setShowCreateMenu(false);
+      }
+    };
+
+    if (showCreateMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-    setCurrentDate(newDate);
+  }, [showCreateMenu]);
+
+  const handleCreateNew = (type) => {
+    setFormType(type);
+    setEditingItem(null);
+    setIsFormOpen(true);
   };
 
-  const handleNext = () => {
-    const newDate = new Date(currentDate);
-    if (view === 'month') {
-      newDate.setMonth(newDate.getMonth() + 1);
-    } else if (view === 'week') {
-      newDate.setDate(newDate.getDate() + 7);
-    } else {
-      newDate.setDate(newDate.getDate() + 1);
-    }
-    setCurrentDate(newDate);
+  const handleEditItem = (item) => {
+    setEditingItem(item);
+    setFormType(item.type);
+    setIsFormOpen(true);
+    setDetailModalOpen(false);
   };
 
-  const handleToday = () => {
-    setCurrentDate(new Date());
+  const handleViewItem = (item) => {
+    setSelectedItem(item);
+    setDetailModalOpen(true);
   };
 
-  const handleDateClick = (date) => {
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setFormType(null);
+    setEditingItem(null);
+  };
+
+  const handleCloseDetailModal = () => {
+    setDetailModalOpen(false);
+    setSelectedItem(null);
+  };
+
+  const handleDateChange = (date) => {
+    setCurrentDate(new Date(date));
+    setSelectedDate(new Date(date));
+  };
+
+  const handleViewChange = (view) => {
+    setViewType(view);
+  };
+
+  const handleShowMoreClick = (date) => {
     setSelectedDate(date);
-    setShowEventForm(true);
+    setViewType(VIEW_TYPES.DAY);
   };
 
-  const handleEventClick = (event) => {
-    setSelectedEvent(event);
-    setShowEventForm(true);
+  const renderForm = () => {
+    if (!isFormOpen || !formType) return null;
+
+    const commonProps = {
+      isOpen: isFormOpen,
+      onClose: handleCloseForm,
+      editingItem: editingItem
+    };
+
+    switch (formType) {
+      case ITEM_TYPES.EVENT:
+        return <EventForm {...commonProps} />;
+      case ITEM_TYPES.TASK:
+        return <TaskForm {...commonProps} />;
+      case ITEM_TYPES.REMINDER:
+        return <ReminderForm {...commonProps} />;
+      case ITEM_TYPES.NOTE:
+        return <NoteForm {...commonProps} />;
+      default:
+        return null;
+    }
   };
 
-  const handleNoteClick = (note) => {
-    setSelectedNote(note);
-    setShowNoteForm(true);
-  };
-
-  const handleCreateEvent = () => {
-    setSelectedEvent(null);
-    setSelectedDate(currentDate);
-    setShowEventForm(true);
-  };
-
-  const handleCreateNote = () => {
-    setSelectedNote(null);
-    setSelectedDate(currentDate);
-    setShowNoteForm(true);
-  };
-
-  const handleCloseEventForm = () => {
-    setShowEventForm(false);
-    setSelectedEvent(null);
-    setSelectedDate(null);
-  };
-
-  const handleCloseNoteForm = () => {
-    setShowNoteForm(false);
-    setSelectedNote(null);
-    setSelectedDate(null);
+  const renderView = () => {
+    switch (viewType) {
+      case VIEW_TYPES.MONTH:
+        return (
+          <MonthView
+            currentDate={currentDate}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            onItemClick={handleViewItem}
+            onShowMoreClick={handleShowMoreClick}
+          />
+        );
+      case VIEW_TYPES.WEEK:
+        return (
+          <WeekView
+            currentDate={currentDate}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            onItemClick={handleViewItem}
+          />
+        );
+      case VIEW_TYPES.DAY:
+        return (
+          <DayView
+            currentDate={selectedDate}
+            onItemClick={handleViewItem}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
     <div className="calendar-page">
-      <div className="calendar-toolbar">
-        <button 
-          className="sidebar-toggle"
-          onClick={() => setSidebarOpen(true)}
+      <div className="calendar-header">
+        <h1 className="calendar-title">Calendário</h1>
+        <CalendarNav
+          currentDate={currentDate}
+          viewType={viewType}
+          onDateChange={handleDateChange}
+          onViewChange={handleViewChange}
+        />
+      </div>
+
+      <div className="calendar-content">
+        {renderView()}
+      </div>
+
+      {/* Menu de criação rápida - Desktop */}
+      <div className="calendar-quick-actions">
+        <button
+          className="quick-action-btn"
+          onClick={() => handleCreateNew(ITEM_TYPES.EVENT)}
+          title="Novo Evento"
         >
-          <Menu size={20} />
+          <Plus size={16} />
+          Evento
+        </button>
+        <button
+          className="quick-action-btn"
+          onClick={() => handleCreateNew(ITEM_TYPES.TASK)}
+          title="Nova Tarefa"
+        >
+          <Plus size={16} />
+          Tarefa
+        </button>
+        <button
+          className="quick-action-btn"
+          onClick={() => handleCreateNew(ITEM_TYPES.REMINDER)}
+          title="Novo Lembrete"
+        >
+          <Plus size={16} />
+          Lembrete
+        </button>
+        <button
+          className="quick-action-btn"
+          onClick={() => handleCreateNew(ITEM_TYPES.NOTE)}
+          title="Nova Nota"
+        >
+          <Plus size={16} />
+          Nota
         </button>
       </div>
 
-      <CalendarHeader
-        currentDate={currentDate}
-        view={view}
-        onPrevious={handlePrevious}
-        onNext={handleNext}
-        onToday={handleToday}
-        onViewChange={setView}
-        onCreateEvent={handleCreateEvent}
-        onCreateNote={handleCreateNote}
-      />
-
-      <div className="calendar-content">
-        {view === 'month' && (
-          <MonthView
-            currentDate={currentDate}
-            onDateClick={handleDateClick}
-            onEventClick={handleEventClick}
-            onNoteClick={handleNoteClick}
-          />
+      {/* FAB Mobile */}
+      <div className="calendar-fab-mobile">
+        {showCreateMenu && (
+          <div className="fab-menu">
+            <button
+              className="fab-menu-item"
+              onClick={() => {
+                handleCreateNew(ITEM_TYPES.EVENT);
+                setShowCreateMenu(false);
+              }}
+            >
+              Evento
+            </button>
+            <button
+              className="fab-menu-item"
+              onClick={() => {
+                handleCreateNew(ITEM_TYPES.TASK);
+                setShowCreateMenu(false);
+              }}
+            >
+              Tarefa
+            </button>
+            <button
+              className="fab-menu-item"
+              onClick={() => {
+                handleCreateNew(ITEM_TYPES.REMINDER);
+                setShowCreateMenu(false);
+              }}
+            >
+              Lembrete
+            </button>
+            <button
+              className="fab-menu-item"
+              onClick={() => {
+                handleCreateNew(ITEM_TYPES.NOTE);
+                setShowCreateMenu(false);
+              }}
+            >
+              Nota
+            </button>
+          </div>
         )}
-        {view === 'week' && (
-          <WeekView
-            currentDate={currentDate}
-            onDateClick={handleDateClick}
-            onEventClick={handleEventClick}
-            onNoteClick={handleNoteClick}
-          />
-        )}
-        {view === 'day' && (
-          <DayView
-            currentDate={currentDate}
-            onEventClick={handleEventClick}
-            onNoteClick={handleNoteClick}
-            onDateClick={handleDateClick}
-          />
-        )}
+        <button
+          className="fab-button"
+          onClick={() => setShowCreateMenu(!showCreateMenu)}
+          aria-label="Criar novo item"
+        >
+          <Plus size={24} />
+        </button>
       </div>
 
-      <CalendarSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-
-      {showEventForm && (
-        <EventForm
-          event={selectedEvent}
-          date={selectedDate || currentDate}
-          onClose={handleCloseEventForm}
-        />
-      )}
-
-      {showNoteForm && (
-        <NoteForm
-          note={selectedNote}
-          date={selectedDate || currentDate}
-          onClose={handleCloseNoteForm}
+      {renderForm()}
+      
+      {detailModalOpen && selectedItem && (
+        <EventDetailModal
+          item={selectedItem}
+          isOpen={detailModalOpen}
+          onClose={handleCloseDetailModal}
+          onEdit={handleEditItem}
         />
       )}
     </div>

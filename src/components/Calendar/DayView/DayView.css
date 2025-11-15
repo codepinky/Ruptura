@@ -1,0 +1,227 @@
+.day-view {
+  width: 100%;
+}
+
+.day-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}
+
+.day-view-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.items-count {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.day-view-empty {
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--text-secondary);
+}
+
+.day-view-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.day-view-list .day-item {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border-left: 4px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  min-height: 80px;
+}
+
+/* Cards de tarefas simplificados */
+.day-view-list .day-item-task {
+  min-height: 60px;
+  padding: var(--space-4) var(--space-4);
+}
+
+.day-view-list .day-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+}
+
+.day-view-list .item-icon {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: var(--space-1);
+}
+
+.day-view-list .item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.day-view-list .item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.day-view-list .item-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.day-view-list .item-type {
+  font-size: 0.75rem;
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+.day-view-list .item-description {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+
+.day-view-list .item-content-text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.day-view-list .item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--bg-secondary);
+}
+
+.day-view-list .meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.day-view-list .meta-item svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+/* Estilo simplificado para tarefas */
+.day-view-list .day-item-task .item-header {
+  margin-bottom: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.day-view-list .day-item-task .item-header .item-type {
+  order: 1;
+  margin-bottom: 0;
+}
+
+.day-view-list .day-item-task .item-header .item-title {
+  order: 2;
+  margin: 0;
+}
+
+/* Estilo para o card "três pontinhos" */
+.day-view-list .day-item-more {
+  opacity: 0.8;
+  border-style: dashed;
+  border-left-width: 4px;
+}
+
+.day-view-list .day-item-more:hover {
+  opacity: 1;
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+}
+
+.day-view-list .day-item-more .item-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.day-view-list .day-item-more .item-title {
+  font-style: italic;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.day-view-list .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.day-view-list .tag {
+  display: inline-block;
+  padding: 2px var(--space-2);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+}
+
+@media (max-width: 768px) {
+  .day-view-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .day-view-list .item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .day-view-list .day-item {
+    padding: var(--space-4) var(--space-3);
+    min-height: 70px;
+  }
+
+  .day-view-list .day-item-task {
+    padding: var(--space-4) var(--space-3);
+    min-height: 60px;
+  }
+}
+

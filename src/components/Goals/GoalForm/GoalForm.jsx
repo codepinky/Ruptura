@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Target, Calendar, DollarSign, FileText, AlertCircle } from 'lucide-react';
+import { useTheme } from '../../../context/ThemeContext';
 import './GoalForm.css';
 
 const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
+  const { currentTheme } = useTheme();
+  const scrollPositionRef = useRef(0);
+  
   const [formData, setFormData] = useState({
     name: goal?.name || '',
     targetAmount: goal?.targetAmount || '',
@@ -39,26 +42,131 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
     }
   }, [goal]);
 
-  // Prevenir scroll do body quando modal está aberto
+  // Prevenir scroll do body quando modal está aberto (mesmo tratamento do SimpleTransactionForm)
   useEffect(() => {
     if (isOpen) {
-      // Salvar o scroll atual e desabilitar scroll
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      document.body.style.overflow = 'hidden';
+      // Salvar posição do scroll atual
+      const currentScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+      scrollPositionRef.current = currentScrollY;
+      
+      // Detectar iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
+      // Prevenir scroll do body quando modal estiver aberto
+      if (isIOS) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'none';
+        document.body.setAttribute('data-scroll-y', currentScrollY.toString());
+        document.documentElement.style.overflow = 'hidden';
+        document.documentElement.style.height = '100%';
+      } else {
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'none';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${currentScrollY}px`;
+        document.body.style.width = '100%';
+      }
+      
+      // ESC para fechar
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+      
+      // Prevenir scroll no iOS quando modal estiver aberto
+      let preventScrollHandler = null;
+      
+      if (isIOS) {
+        preventScrollHandler = (e) => {
+          const modalContent = e.target.closest('.goal-form');
+          const isScrollable = modalContent && (
+            modalContent.scrollHeight > modalContent.clientHeight ||
+            e.target.closest('.form-content') ||
+            e.target.closest('input') ||
+            e.target.closest('select') ||
+            e.target.closest('textarea')
+          );
+          
+          if (!isScrollable) {
+            e.preventDefault();
+            return false;
+          }
+        };
+        
+        document.body.addEventListener('touchmove', preventScrollHandler, { passive: false, capture: true });
+        document.body.addEventListener('wheel', preventScrollHandler, { passive: false, capture: true });
+        document.addEventListener('touchmove', preventScrollHandler, { passive: false, capture: true });
+      }
       
       return () => {
-        // Restaurar scroll quando modal fechar
+        document.removeEventListener('keydown', handleEscape);
+        if (isIOS && preventScrollHandler) {
+          document.body.removeEventListener('touchmove', preventScrollHandler, { capture: true });
+          document.body.removeEventListener('wheel', preventScrollHandler, { capture: true });
+          document.removeEventListener('touchmove', preventScrollHandler, { capture: true });
+        }
+      };
+    } else {
+      // Detectar iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
+      // Restaurar scroll do body quando modal fechar
+      const savedScrollY = scrollPositionRef.current;
+      
+      if (isIOS) {
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.removeAttribute('data-scroll-y');
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.height = '';
+        
+        setTimeout(() => {
+          if (savedScrollY > 0) {
+            window.scrollTo({
+              top: savedScrollY,
+              behavior: 'auto'
+            });
+          }
+        }, 0);
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.width = '';
-        document.body.style.overflow = '';
-        window.scrollTo(0, scrollY);
-      };
+        
+        if (savedScrollY > 0) {
+          requestAnimationFrame(() => {
+            window.scrollTo(0, savedScrollY);
+          });
+        }
+      }
     }
-  }, [isOpen]);
+    
+    // Cleanup quando componente desmontar
+    return () => {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
+      if (isIOS) {
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.removeAttribute('data-scroll-y');
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.height = '';
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+      }
+    };
+  }, [isOpen, onClose]);
 
   const [errors, setErrors] = useState({});
 
@@ -146,56 +254,63 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
 
   if (!isOpen) return null;
 
-  const modalContent = (
+  return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="goal-form" onClick={(e) => e.stopPropagation()}>
+      <div className={`goal-form ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
-          <h2 className="form-title">
+          <h2>
             {goal ? 'Editar Meta' : 'Nova Meta Financeira'}
           </h2>
-          <button className="close-button" onClick={onClose}>
-            <X size={24} />
+          <button 
+            className="close-btn" 
+            onClick={onClose}
+            aria-label="Fechar formulário"
+            type="button"
+          >
+            <X size={24} aria-hidden="true" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="form">
+        <form onSubmit={handleSubmit} className="form-content">
           <div className="form-group">
-            <label className="form-label">
+            <label>
               <Target size={16} />
-              Nome da Meta
+              Nome da Meta *
             </label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`form-input ${errors.name ? 'error' : ''}`}
+              className={errors.name ? 'error' : ''}
               placeholder="Ex: Reserva de Emergência, Viagem para Europa..."
+              aria-describedby={errors.name ? 'name-error' : undefined}
             />
-            {errors.name && <span className="error-message">{errors.name}</span>}
+            {errors.name && <span id="name-error" className="error" role="alert">{errors.name}</span>}
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">
+              <label>
                 <DollarSign size={16} />
-                Valor da Meta
+                Valor da Meta *
               </label>
               <input
                 type="number"
                 name="targetAmount"
                 value={formData.targetAmount}
                 onChange={handleChange}
-                className={`form-input ${errors.targetAmount ? 'error' : ''}`}
+                className={errors.targetAmount ? 'error' : ''}
                 placeholder="0,00"
                 step="0.01"
                 min="0"
+                aria-describedby={errors.targetAmount ? 'targetAmount-error' : undefined}
               />
-              {errors.targetAmount && <span className="error-message">{errors.targetAmount}</span>}
+              {errors.targetAmount && <span id="targetAmount-error" className="error" role="alert">{errors.targetAmount}</span>}
             </div>
 
             <div className="form-group">
-              <label className="form-label">
+              <label>
                 <DollarSign size={16} />
                 Valor Atual
               </label>
@@ -204,18 +319,19 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
                 name="currentAmount"
                 value={formData.currentAmount}
                 onChange={handleChange}
-                className={`form-input ${errors.currentAmount ? 'error' : ''}`}
+                className={errors.currentAmount ? 'error' : ''}
                 placeholder="0,00"
                 step="0.01"
                 min="0"
+                aria-describedby={errors.currentAmount ? 'currentAmount-error' : undefined}
               />
-              {errors.currentAmount && <span className="error-message">{errors.currentAmount}</span>}
+              {errors.currentAmount && <span id="currentAmount-error" className="error" role="alert">{errors.currentAmount}</span>}
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">
+              <label>
                 <Target size={16} />
                 Tipo de Meta
               </label>
@@ -223,7 +339,6 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
                 name="type"
                 value={formData.type}
                 onChange={handleChange}
-                className="form-select"
               >
                 {goalTypes.map(type => (
                   <option key={type.value} value={type.value}>
@@ -234,7 +349,7 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">
+              <label>
                 <AlertCircle size={16} />
                 Prioridade
               </label>
@@ -242,7 +357,6 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                className="form-select"
               >
                 {priorities.map(priority => (
                   <option key={priority.value} value={priority.value}>
@@ -253,35 +367,37 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">
+          <div className="form-group date-input-group">
+            <label>
               <Calendar size={16} />
-              Data Limite
+              Data Limite *
             </label>
             <input
               type="date"
               name="deadline"
               value={formData.deadline}
               onChange={handleChange}
-              className={`form-input ${errors.deadline ? 'error' : ''}`}
+              className={errors.deadline ? 'error' : ''}
+              aria-describedby={errors.deadline ? 'deadline-error' : undefined}
             />
-            {errors.deadline && <span className="error-message">{errors.deadline}</span>}
+            {errors.deadline && <span id="deadline-error" className="error" role="alert">{errors.deadline}</span>}
           </div>
 
           <div className="form-group">
-            <label className="form-label">
+            <label>
               <FileText size={16} />
-              Descrição
+              Descrição *
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className={`form-textarea ${errors.description ? 'error' : ''}`}
+              className={errors.description ? 'error' : ''}
               placeholder="Descreva sua meta financeira..."
               rows={3}
+              aria-describedby={errors.description ? 'description-error' : undefined}
             />
-            {errors.description && <span className="error-message">{errors.description}</span>}
+            {errors.description && <span id="description-error" className="error" role="alert">{errors.description}</span>}
           </div>
 
           {/* Preview da Meta */}
@@ -315,10 +431,10 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
           )}
 
           <div className="form-actions">
-            <button type="button" className="cancel-button" onClick={onClose}>
+            <button type="button" onClick={onClose} className="cancel-btn">
               Cancelar
             </button>
-            <button type="submit" className="submit-button">
+            <button type="submit" className="submit-btn">
               {goal ? 'Atualizar' : 'Criar'} Meta
             </button>
           </div>
@@ -326,8 +442,6 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
       </div>
     </div>
   );
-
-  return createPortal(modalContent, document.body);
 };
 
 export default GoalForm;

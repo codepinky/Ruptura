@@ -1,23 +1,45 @@
 import React, { createContext, useContext, useReducer, useEffect, useState, useMemo, useCallback } from 'react';
-import { useFinancial } from './FinancialContext';
 
-// Cores padrão para calendários
-export const DEFAULT_CALENDAR_COLORS = [
+// Tipos de itens do calendário
+export const CALENDAR_ITEM_TYPES = {
+  EVENT: 'event',
+  TASK: 'task',
+  REMINDER: 'reminder',
+  NOTE: 'note'
+};
+
+// Status de tarefas
+export const TASK_STATUS = {
+  PENDING: 'pending',
+  IN_PROGRESS: 'in-progress',
+  COMPLETED: 'completed'
+};
+
+// Prioridades
+export const PRIORITY = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high'
+};
+
+// Cores padrão para eventos
+export const DEFAULT_COLORS = [
   '#3B82F6', // Azul
   '#10B981', // Verde
-  '#F59E0B', // Laranja
+  '#F59E0B', // Amarelo
   '#EF4444', // Vermelho
   '#8B5CF6', // Roxo
   '#EC4899', // Rosa
   '#14B8A6', // Ciano
-  '#F97316', // Laranja escuro
+  '#F97316'  // Laranja
 ];
 
 // Estado inicial
 const initialState = {
   events: [],
+  tasks: [],
+  reminders: [],
   notes: [],
-  calendars: [],
   loading: false,
   error: null
 };
@@ -29,13 +51,15 @@ const ACTIONS = {
   ADD_EVENT: 'ADD_EVENT',
   UPDATE_EVENT: 'UPDATE_EVENT',
   DELETE_EVENT: 'DELETE_EVENT',
+  ADD_TASK: 'ADD_TASK',
+  UPDATE_TASK: 'UPDATE_TASK',
+  DELETE_TASK: 'DELETE_TASK',
+  ADD_REMINDER: 'ADD_REMINDER',
+  UPDATE_REMINDER: 'UPDATE_REMINDER',
+  DELETE_REMINDER: 'DELETE_REMINDER',
   ADD_NOTE: 'ADD_NOTE',
   UPDATE_NOTE: 'UPDATE_NOTE',
   DELETE_NOTE: 'DELETE_NOTE',
-  ADD_CALENDAR: 'ADD_CALENDAR',
-  UPDATE_CALENDAR: 'UPDATE_CALENDAR',
-  DELETE_CALENDAR: 'DELETE_CALENDAR',
-  TOGGLE_CALENDAR_VISIBILITY: 'TOGGLE_CALENDAR_VISIBILITY',
   LOAD_DATA: 'LOAD_DATA'
 };
 
@@ -69,26 +93,60 @@ function calendarReducer(state, action) {
         events: state.events.filter(e => e.id !== action.payload)
       };
     
-    case ACTIONS.ADD_NOTE:
-      const newNoteId = Date.now() + Math.random();
-      const now = new Date().toISOString();
+    case ACTIONS.ADD_TASK:
+      const newTaskId = Date.now() + Math.random();
       return {
         ...state,
-        notes: [...state.notes, { 
-          ...action.payload, 
-          id: newNoteId,
-          createdAt: now,
-          updatedAt: now
-        }]
+        tasks: [...state.tasks, { ...action.payload, id: newTaskId }]
+      };
+    
+    case ACTIONS.UPDATE_TASK:
+      return {
+        ...state,
+        tasks: state.tasks.map(t => 
+          t.id === action.payload.id ? action.payload : t
+        )
+      };
+    
+    case ACTIONS.DELETE_TASK:
+      return {
+        ...state,
+        tasks: state.tasks.filter(t => t.id !== action.payload)
+      };
+    
+    case ACTIONS.ADD_REMINDER:
+      const newReminderId = Date.now() + Math.random();
+      return {
+        ...state,
+        reminders: [...state.reminders, { ...action.payload, id: newReminderId, notified: false }]
+      };
+    
+    case ACTIONS.UPDATE_REMINDER:
+      return {
+        ...state,
+        reminders: state.reminders.map(r => 
+          r.id === action.payload.id ? action.payload : r
+        )
+      };
+    
+    case ACTIONS.DELETE_REMINDER:
+      return {
+        ...state,
+        reminders: state.reminders.filter(r => r.id !== action.payload)
+      };
+    
+    case ACTIONS.ADD_NOTE:
+      const newNoteId = Date.now() + Math.random();
+      return {
+        ...state,
+        notes: [...state.notes, { ...action.payload, id: newNoteId }]
       };
     
     case ACTIONS.UPDATE_NOTE:
       return {
         ...state,
         notes: state.notes.map(n => 
-          n.id === action.payload.id 
-            ? { ...action.payload, updatedAt: new Date().toISOString() }
-            : n
+          n.id === action.payload.id ? action.payload : n
         )
       };
     
@@ -96,38 +154,6 @@ function calendarReducer(state, action) {
       return {
         ...state,
         notes: state.notes.filter(n => n.id !== action.payload)
-      };
-    
-    case ACTIONS.ADD_CALENDAR:
-      const newCalendarId = Date.now() + Math.random();
-      return {
-        ...state,
-        calendars: [...state.calendars, { ...action.payload, id: newCalendarId, visible: true }]
-      };
-    
-    case ACTIONS.UPDATE_CALENDAR:
-      return {
-        ...state,
-        calendars: state.calendars.map(c => 
-          c.id === action.payload.id ? action.payload : c
-        )
-      };
-    
-    case ACTIONS.DELETE_CALENDAR:
-      return {
-        ...state,
-        calendars: state.calendars.filter(c => c.id !== action.payload),
-        events: state.events.filter(e => e.calendarId !== action.payload)
-      };
-    
-    case ACTIONS.TOGGLE_CALENDAR_VISIBILITY:
-      return {
-        ...state,
-        calendars: state.calendars.map(c => 
-          c.id === action.payload 
-            ? { ...c, visible: !c.visible }
-            : c
-        )
       };
     
     case ACTIONS.LOAD_DATA:
@@ -150,69 +176,36 @@ const CalendarContext = createContext();
 export function CalendarProvider({ children }) {
   const [state, dispatch] = useReducer(calendarReducer, initialState);
   const [isInitialized, setIsInitialized] = useState(false);
-  const { transactions, categories } = useFinancial();
 
-  // Inicializar calendário de transações
+  // Carregar dados do localStorage apenas uma vez na montagem
   useEffect(() => {
-    if (!isInitialized) {
-      const savedData = localStorage.getItem('calendar-data');
-      
-      if (savedData) {
-        try {
-          const data = JSON.parse(savedData);
-          // Verificar se já existe calendário de transações
-          const hasTransactionsCalendar = data.calendars?.some(c => c.type === 'transactions');
-          if (!hasTransactionsCalendar) {
-            const transactionsCalendar = {
-              id: 'transactions-calendar',
-              name: 'Transações',
-              color: '#3B82F6',
-              visible: true,
-              type: 'transactions'
-            };
-            data.calendars = [...(data.calendars || []), transactionsCalendar];
-          }
-          dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
-        } catch (error) {
-          console.error('Erro ao carregar dados do calendário:', error);
-          // Criar calendário padrão de transações em caso de erro
-          const transactionsCalendar = {
-            id: 'transactions-calendar',
-            name: 'Transações',
-            color: '#3B82F6',
-            visible: true,
-            type: 'transactions'
-          };
-          dispatch({ type: ACTIONS.ADD_CALENDAR, payload: transactionsCalendar });
-        }
-      } else {
-        // Criar calendário padrão de transações
-        const transactionsCalendar = {
-          id: 'transactions-calendar',
-          name: 'Transações',
-          color: '#3B82F6',
-          visible: true,
-          type: 'transactions'
-        };
-        dispatch({ type: ACTIONS.ADD_CALENDAR, payload: transactionsCalendar });
+    const savedData = localStorage.getItem('calendar-data');
+    
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
+      } catch (error) {
+        console.error('Erro ao carregar dados do calendário do localStorage:', error);
       }
-      
-      setIsInitialized(true);
     }
-  }, [isInitialized]);
+    
+    setIsInitialized(true);
+  }, []);
 
-  // Salvar dados no localStorage
+  // Salvar dados no localStorage apenas após inicialização
   useEffect(() => {
     if (isInitialized) {
       localStorage.setItem('calendar-data', JSON.stringify({
         events: state.events,
-        notes: state.notes,
-        calendars: state.calendars
+        tasks: state.tasks,
+        reminders: state.reminders,
+        notes: state.notes
       }));
     }
-  }, [state.events, state.notes, state.calendars, isInitialized]);
+  }, [state.events, state.tasks, state.reminders, state.notes, isInitialized]);
 
-  // Actions
+  // Actions - Memoizadas
   const addEvent = useCallback((event) => {
     dispatch({ type: ACTIONS.ADD_EVENT, payload: event });
   }, []);
@@ -223,6 +216,30 @@ export function CalendarProvider({ children }) {
 
   const deleteEvent = useCallback((id) => {
     dispatch({ type: ACTIONS.DELETE_EVENT, payload: id });
+  }, []);
+
+  const addTask = useCallback((task) => {
+    dispatch({ type: ACTIONS.ADD_TASK, payload: task });
+  }, []);
+
+  const updateTask = useCallback((task) => {
+    dispatch({ type: ACTIONS.UPDATE_TASK, payload: task });
+  }, []);
+
+  const deleteTask = useCallback((id) => {
+    dispatch({ type: ACTIONS.DELETE_TASK, payload: id });
+  }, []);
+
+  const addReminder = useCallback((reminder) => {
+    dispatch({ type: ACTIONS.ADD_REMINDER, payload: reminder });
+  }, []);
+
+  const updateReminder = useCallback((reminder) => {
+    dispatch({ type: ACTIONS.UPDATE_REMINDER, payload: reminder });
+  }, []);
+
+  const deleteReminder = useCallback((id) => {
+    dispatch({ type: ACTIONS.DELETE_REMINDER, payload: id });
   }, []);
 
   const addNote = useCallback((note) => {
@@ -237,142 +254,148 @@ export function CalendarProvider({ children }) {
     dispatch({ type: ACTIONS.DELETE_NOTE, payload: id });
   }, []);
 
-  const addCalendar = useCallback((calendar) => {
-    dispatch({ type: ACTIONS.ADD_CALENDAR, payload: calendar });
-  }, []);
-
-  const updateCalendar = useCallback((calendar) => {
-    dispatch({ type: ACTIONS.UPDATE_CALENDAR, payload: calendar });
-  }, []);
-
-  const deleteCalendar = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_CALENDAR, payload: id });
-  }, []);
-
-  const toggleCalendarVisibility = useCallback((id) => {
-    dispatch({ type: ACTIONS.TOGGLE_CALENDAR_VISIBILITY, payload: id });
-  }, []);
-
   // Funções utilitárias
-  const getEventsByDate = useCallback((date) => {
-    const dateStr = new Date(date).toDateString();
-    return state.events.filter(event => {
-      const eventDate = new Date(event.start).toDateString();
-      return eventDate === dateStr;
-    });
-  }, [state.events]);
-
-  const getNotesByDate = useCallback((date) => {
-    const dateStr = new Date(date).toDateString();
-    return state.notes.filter(note => {
-      const noteDate = new Date(note.date).toDateString();
-      return noteDate === dateStr;
-    });
-  }, [state.notes]);
-
-  const getEventsByDateRange = useCallback((startDate, endDate) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
-    
-    return state.events.filter(event => {
-      const eventStart = new Date(event.start);
-      return eventStart >= start && eventStart <= end;
-    });
-  }, [state.events]);
-
-  const getNotesByDateRange = useCallback((startDate, endDate) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
-    
-    return state.notes.filter(note => {
-      const noteDate = new Date(note.date);
-      return noteDate >= start && noteDate <= end;
-    });
-  }, [state.notes]);
-
-  // Integração com transações - converter transações em eventos
-  const transactionEvents = useMemo(() => {
-    const transactionsCalendar = state.calendars.find(c => c.type === 'transactions');
-    if (!transactionsCalendar || !transactionsCalendar.visible) {
-      return [];
+  const getItemsByDate = useCallback((date) => {
+    // Normalizar a data para string YYYY-MM-DD
+    let dateStr;
+    if (typeof date === 'string') {
+      dateStr = date.split('T')[0];
+    } else if (date instanceof Date) {
+      // Usar métodos locais para evitar problemas de timezone
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      dateStr = `${year}-${month}-${day}`;
+    } else {
+      dateStr = new Date(date).toISOString().split('T')[0];
     }
+    
+    return {
+      events: state.events.filter(e => {
+        if (!e.startDate) return false;
+        const startDate = e.startDate.split('T')[0];
+        const endDate = e.endDate ? e.endDate.split('T')[0] : startDate;
+        return dateStr >= startDate && dateStr <= endDate;
+      }),
+      tasks: state.tasks.filter(t => {
+        if (!t.dueDate) return false;
+        const taskDate = t.dueDate.split('T')[0];
+        return taskDate === dateStr;
+      }),
+      reminders: state.reminders.filter(r => {
+        if (!r.date) return false;
+        const reminderDate = r.date.split('T')[0];
+        return reminderDate === dateStr;
+      }),
+      notes: state.notes.filter(n => {
+        if (!n.date) return false;
+        const noteDate = n.date.split('T')[0];
+        return noteDate === dateStr;
+      })
+    };
+  }, [state.events, state.tasks, state.reminders, state.notes]);
 
-    return transactions.map(transaction => {
-      let categoryColor = '#64748B';
-      
-      if (transaction.categoryId) {
-        const category = categories.find(c => c.id === transaction.categoryId);
-        if (category) {
-          categoryColor = category.color;
-        } else {
-          categoryColor = transaction.type === 'income' ? '#10B981' : '#EF4444';
-        }
-      } else {
-        categoryColor = transaction.type === 'income' ? '#10B981' : '#EF4444';
-      }
+  const getItemsByDateRange = useCallback((startDate, endDate) => {
+    const start = typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0];
+    const end = typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0];
+    
+    return {
+      events: state.events.filter(e => {
+        const eventStart = e.startDate.split('T')[0];
+        const eventEnd = e.endDate ? e.endDate.split('T')[0] : eventStart;
+        return (eventStart >= start && eventStart <= end) || 
+               (eventEnd >= start && eventEnd <= end) ||
+               (eventStart <= start && eventEnd >= end);
+      }),
+      tasks: state.tasks.filter(t => {
+        if (!t.dueDate) return false;
+        const taskDate = t.dueDate.split('T')[0];
+        return taskDate >= start && taskDate <= end;
+      }),
+      reminders: state.reminders.filter(r => {
+        const reminderDate = r.date.split('T')[0];
+        return reminderDate >= start && reminderDate <= end;
+      }),
+      notes: state.notes.filter(n => {
+        if (!n.date) return false;
+        const noteDate = n.date.split('T')[0];
+        return noteDate >= start && noteDate <= end;
+      })
+    };
+  }, [state.events, state.tasks, state.reminders, state.notes]);
 
-      return {
-        id: `transaction-${transaction.id}`,
-        title: transaction.description || 'Transação',
-        start: new Date(transaction.date),
-        end: new Date(transaction.date),
-        allDay: true,
-        description: `Valor: R$ ${transaction.amount?.toFixed(2) || '0.00'}`,
-        calendarId: transactionsCalendar.id,
-        color: categoryColor,
-        transactionId: transaction.id
-      };
-    });
-  }, [transactions, state.calendars, categories]);
+  const getItemsByMonth = useCallback((year, month) => {
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
+    return getItemsByDateRange(startDate, endDate);
+  }, [getItemsByDateRange]);
 
-  // Combinar eventos customizados com eventos de transações
-  const allEvents = useMemo(() => {
-    const customEvents = state.events.filter(e => {
-      const calendar = state.calendars.find(c => c.id === e.calendarId);
-      return calendar && calendar.visible;
-    });
-      return [...customEvents, ...transactionEvents];
-  }, [state.events, state.calendars, transactionEvents]);
+  const getUpcomingReminders = useCallback(() => {
+    const now = new Date();
+    return state.reminders
+      .filter(r => {
+        const reminderDate = new Date(r.date);
+        const advanceTime = r.advanceTime || 0;
+        const notificationTime = new Date(reminderDate.getTime() - advanceTime * 60000);
+        return notificationTime <= now && !r.notified;
+      })
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [state.reminders]);
+
+  const getPendingTasks = useCallback(() => {
+    return state.tasks
+      .filter(t => t.status !== TASK_STATUS.COMPLETED)
+      .sort((a, b) => {
+        const priorityOrder = { [PRIORITY.HIGH]: 3, [PRIORITY.MEDIUM]: 2, [PRIORITY.LOW]: 1 };
+        const aPriority = priorityOrder[a.priority] || 0;
+        const bPriority = priorityOrder[b.priority] || 0;
+        if (aPriority !== bPriority) return bPriority - aPriority;
+        return new Date(a.dueDate || 0) - new Date(b.dueDate || 0);
+      });
+  }, [state.tasks]);
 
   const value = useMemo(() => ({
     ...state,
-    events: allEvents,
     addEvent,
     updateEvent,
     deleteEvent,
+    addTask,
+    updateTask,
+    deleteTask,
+    addReminder,
+    updateReminder,
+    deleteReminder,
     addNote,
     updateNote,
     deleteNote,
-    addCalendar,
-    updateCalendar,
-    deleteCalendar,
-    toggleCalendarVisibility,
-    getEventsByDate,
-    getNotesByDate,
-    getEventsByDateRange,
-    getNotesByDateRange,
-    DEFAULT_CALENDAR_COLORS
+    getItemsByDate,
+    getItemsByDateRange,
+    getItemsByMonth,
+    getUpcomingReminders,
+    getPendingTasks,
+    CALENDAR_ITEM_TYPES,
+    TASK_STATUS,
+    PRIORITY,
+    DEFAULT_COLORS
   }), [
     state,
-    allEvents,
     addEvent,
     updateEvent,
     deleteEvent,
+    addTask,
+    updateTask,
+    deleteTask,
+    addReminder,
+    updateReminder,
+    deleteReminder,
     addNote,
     updateNote,
     deleteNote,
-    addCalendar,
-    updateCalendar,
-    deleteCalendar,
-    toggleCalendarVisibility,
-    getEventsByDate,
-    getNotesByDate,
-    getEventsByDateRange,
-    getNotesByDateRange
+    getItemsByDate,
+    getItemsByDateRange,
+    getItemsByMonth,
+    getUpcomingReminders,
+    getPendingTasks
   ]);
 
   return (
