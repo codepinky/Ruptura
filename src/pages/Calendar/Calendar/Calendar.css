@@ -13,16 +13,43 @@
 .calendar-header {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-4);
   margin-bottom: var(--space-5);
   padding: 0 var(--space-2);
+  width: 100%;
 }
 
 .calendar-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: clamp(1.75rem, 4vw + 1rem, 3rem);
+  font-weight: 800;
   color: var(--text-primary);
-  margin: 0;
+  margin: 0 0 1rem 0;
+  line-height: var(--line-height-tight);
+  background: linear-gradient(135deg, 
+    var(--color-primary) 0%, 
+    var(--color-secondary) 50%, 
+    #10B981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  text-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+  text-align: center;
+  width: 100%;
+}
+
+.calendar-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  border-radius: 2px;
+  animation: expandLine 1s ease-out 0.5s both;
 }
 
 .calendar-content {
@@ -31,6 +58,10 @@
   border-radius: 0;
   padding: var(--space-2) var(--space-1);
   box-shadow: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .calendar-quick-actions {
@@ -191,7 +222,7 @@
   }
 
   .calendar-title {
-    font-size: 2rem;
+    /* Mantém o estilo responsivo do clamp */
   }
 
   .calendar-content {
@@ -205,6 +236,15 @@
 
   .calendar-quick-actions {
     display: flex;
+  }
+}
+
+@keyframes expandLine {
+  from {
+    width: 0;
+  }
+  to {
+    width: 60px;
   }
 }
 

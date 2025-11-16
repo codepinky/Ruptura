@@ -90,3 +90,5 @@ const WeekView = ({ currentDate, onDateClick, onEventClick, onNoteClick }) => {
 export default WeekView;
 
 
+
+

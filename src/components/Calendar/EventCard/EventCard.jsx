@@ -34,3 +34,5 @@ const EventCard = ({ event, onClick, compact = false }) => {
 export default EventCard;
 
 
+
+

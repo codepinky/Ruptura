@@ -57,3 +57,5 @@ const NoteCard = ({ note, onClick, compact = false }) => {
 export default NoteCard;
 
 
+
+

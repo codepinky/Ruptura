@@ -57,67 +57,69 @@ const WeekView = ({ currentDate, selectedDate, onDateSelect, onItemClick }) => {
   };
 
   return (
-    <div className="week-view">
-      <div className="week-view-header">
-        <div className="time-column-header"></div>
-        {weekData.days.map((day, index) => (
-          <div
-            key={index}
-            className={`day-header ${day.isToday ? 'today' : ''} ${day.isSelected ? 'selected' : ''}`}
-            onClick={() => handleDayClick(day)}
-          >
-            <div className="day-name">{day.dayName}</div>
-            <div className="day-number">{day.dayNumber}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="week-view-grid">
-        <div className="time-column">
-          {HOURS.map((hour) => (
-            <div key={hour} className="time-slot">
-              {hour.toString().padStart(2, '0')}:00
+    <div className="week-view-container">
+      <div className="week-view">
+        <div className="week-view-header">
+          <div className="time-column-header"></div>
+          {weekData.days.map((day, index) => (
+            <div
+              key={index}
+              className={`day-header ${day.isToday ? 'today' : ''} ${day.isSelected ? 'selected' : ''}`}
+              onClick={() => handleDayClick(day)}
+            >
+              <div className="day-name">{day.dayName}</div>
+              <div className="day-number">{day.dayNumber}</div>
             </div>
           ))}
         </div>
 
-        <div className="days-columns">
-          {weekData.days.map((day, dayIndex) => (
-            <div key={dayIndex} className="day-column">
-              {HOURS.map((hour) => {
-                const events = getEventsForDayAndHour(day, hour);
-                return (
-                  <div key={hour} className="hour-slot">
-                    {events.map((event) => {
-                      const startTime = new Date(event.startDate);
-                      const endTime = new Date(event.endDate);
-                      const duration = (endTime - startTime) / (1000 * 60); // minutos
-                      const topOffset = startTime.getMinutes();
-                      
-                      return (
-                        <div
-                          key={event.id}
-                          className="week-event"
-                          style={{
-                            backgroundColor: event.color || '#3B82F6',
-                            height: `${Math.max(20, (duration / 60) * 100)}px`,
-                            top: `${(topOffset / 60) * 100}%`
-                          }}
-                          onClick={(e) => handleItemClick(e, event)}
-                          title={event.title}
-                        >
-                          <div className="event-time">
-                            {startTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+        <div className="week-view-grid">
+          <div className="time-column">
+            {HOURS.map((hour) => (
+              <div key={hour} className="time-slot">
+                {hour.toString().padStart(2, '0')}:00
+              </div>
+            ))}
+          </div>
+
+          <div className="days-columns">
+            {weekData.days.map((day, dayIndex) => (
+              <div key={dayIndex} className="day-column">
+                {HOURS.map((hour) => {
+                  const events = getEventsForDayAndHour(day, hour);
+                  return (
+                    <div key={hour} className="hour-slot">
+                      {events.map((event) => {
+                        const startTime = new Date(event.startDate);
+                        const endTime = new Date(event.endDate);
+                        const duration = (endTime - startTime) / (1000 * 60); // minutos
+                        const topOffset = startTime.getMinutes();
+                        
+                        return (
+                          <div
+                            key={event.id}
+                            className="week-event"
+                            style={{
+                              backgroundColor: event.color || '#3B82F6',
+                              height: `${Math.max(20, (duration / 60) * 100)}px`,
+                              top: `${(topOffset / 60) * 100}%`
+                            }}
+                            onClick={(e) => handleItemClick(e, event)}
+                            title={event.title}
+                          >
+                            <div className="event-time">
+                              {startTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                            <div className="event-title">{event.title}</div>
                           </div>
-                          <div className="event-title">{event.title}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

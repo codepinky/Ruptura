@@ -120,3 +120,5 @@ const MonthView = ({ currentDate, onDateClick, onEventClick, onNoteClick }) => {
 export default MonthView;
 
 
+
+

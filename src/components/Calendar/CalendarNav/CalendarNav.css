@@ -110,7 +110,9 @@
   padding: var(--space-3) var(--space-4);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
 }
 
 .calendar-nav-month {
@@ -211,8 +213,25 @@
     flex: 1;
   }
 
+  .calendar-nav-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
   .calendar-nav-month {
     font-size: 1.125rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .calendar-nav-top .view-selector {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .calendar-nav-top .view-btn {
+    flex: 1;
   }
 
   .month-scroll {

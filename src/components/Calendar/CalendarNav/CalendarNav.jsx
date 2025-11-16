@@ -114,6 +114,26 @@ const CalendarNav = ({ currentDate, viewType, onDateChange, onViewChange }) => {
             {formatDate(currentDate)}
             <ChevronDown size={18} className="month-dropdown-icon" />
           </h2>
+          <div className="view-selector">
+            <button
+              className={`view-btn ${viewType === VIEW_TYPES.MONTH ? 'active' : ''}`}
+              onClick={() => onViewChange(VIEW_TYPES.MONTH)}
+            >
+              Mês
+            </button>
+            <button
+              className={`view-btn ${viewType === VIEW_TYPES.WEEK ? 'active' : ''}`}
+              onClick={() => onViewChange(VIEW_TYPES.WEEK)}
+            >
+              Semana
+            </button>
+            <button
+              className={`view-btn ${viewType === VIEW_TYPES.DAY ? 'active' : ''}`}
+              onClick={() => onViewChange(VIEW_TYPES.DAY)}
+            >
+              Dia
+            </button>
+          </div>
         </div>
         
         <div className="month-scroll-container" ref={monthScrollRef}>
