@@ -1,15 +1,18 @@
 .month-view {
   width: 100%;
+  box-sizing: border-box;
 }
 
 .month-view-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0;
-  margin-bottom: var(--space-2);
-  padding: var(--space-1) var(--space-2);
+  margin-bottom: 0;
+  padding: 0;
   background: transparent;
   border-radius: 0;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .day-header {
@@ -17,7 +20,23 @@
   font-weight: 600;
   font-size: 0.7rem;
   color: var(--text-secondary);
-  padding: var(--space-1) 2px;
+  padding: var(--space-1) 0;
+  box-sizing: border-box;
+  border-right: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--border-primary);
+  border-left: none;
+  border-top: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  width: 100%;
+  position: relative;
+  min-width: 0 !important;
+}
+
+.day-header:first-child {
+  border-left: 1px solid var(--border-primary);
 }
 
 .month-view-grid {
@@ -27,7 +46,7 @@
   gap: 0;
   min-height: auto;
   width: 100%;
-  border: 1px solid var(--border-primary);
+  box-sizing: border-box;
 }
 
 .dark .month-view-grid {
@@ -36,9 +55,12 @@
 
 .day-cell {
   height: 100px;
-  padding: 3px 1px;
+  padding: 3px 0;
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
+  border-right: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--border-primary);
+  border-left: none;
+  border-top: none;
   border-radius: 0;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -46,6 +68,14 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
+}
+
+.day-cell:nth-child(7n+1) {
+  border-left: 1px solid var(--border-primary);
+}
+
+.day-cell:nth-child(-n+7) {
+  border-top: 1px solid var(--border-primary);
 }
 
 .dark .day-cell {
@@ -222,6 +252,12 @@
 
 /* Mobile First - Estilos base são para mobile */
 
+@media (max-width: 768px) {
+  .day-header {
+    min-width: 0 !important;
+  }
+}
+
 .day-cell:hover {
   background: var(--bg-hover);
   transform: none;
@@ -231,24 +267,25 @@
 /* Desktop - Ajustes para telas maiores */
 @media (min-width: 769px) {
   .month-view-header {
-    padding: var(--space-2) var(--space-4);
-    gap: var(--space-1);
+    padding: 0;
+    gap: 0;
+    margin-bottom: var(--space-2);
   }
 
   .day-header {
     font-size: 0.875rem;
-    padding: var(--space-2);
+    padding: var(--space-2) 0;
+    min-width: 0 !important;
   }
 
   .month-view-grid {
     grid-auto-rows: 120px;
     min-height: 600px;
-    border: none;
   }
 
   .day-cell {
     height: 120px;
-    padding: 4px 2px;
+    padding: 4px 0;
   }
 
   .day-cell:hover {

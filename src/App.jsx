@@ -13,6 +13,7 @@ import Spreadsheet from './pages/Spreadsheet/Spreadsheet/Spreadsheet';
 import Categories from './pages/Categories/Categories/Categories';
 import Calendar from './pages/Calendar/Calendar/Calendar';
 import Planning from './pages/Planning/Planning/Planning';
+import Settings from './pages/Settings/Settings/Settings';
 import './App.css';
 
 function App() {
@@ -31,7 +32,7 @@ function App() {
                   <Route path="/categories" element={<Categories />} />
                   <Route path="/calendar" element={<Calendar />} />
                   <Route path="/planning" element={<Planning />} />
-                  <Route path="/settings" element={<div>Configurações - Em desenvolvimento</div>} />
+                  <Route path="/settings" element={<Settings />} />
                 </Routes>
               </Layout>
               <ToastContainer />

@@ -301,6 +301,7 @@ export function CalendarProvider({ children }) {
     
     return {
       events: state.events.filter(e => {
+        if (!e.startDate) return false;
         const eventStart = e.startDate.split('T')[0];
         const eventEnd = e.endDate ? e.endDate.split('T')[0] : eventStart;
         return (eventStart >= start && eventStart <= end) || 
@@ -313,6 +314,7 @@ export function CalendarProvider({ children }) {
         return taskDate >= start && taskDate <= end;
       }),
       reminders: state.reminders.filter(r => {
+        if (!r.date) return false;
         const reminderDate = r.date.split('T')[0];
         return reminderDate >= start && reminderDate <= end;
       }),
