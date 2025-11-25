@@ -70,7 +70,7 @@ const SearchResults = () => {
   };
 
   return (
-    <div className="search-results-overlay" onClick={closeSearch}>
+    <div className="search-results-overlay">
       <div className={`search-results ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
         <div className="search-results-header">
           <div className="search-results-title">

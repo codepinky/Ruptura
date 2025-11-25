@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFinancial, TRANSACTION_TYPES } from '../../../context/FinancialContext';
+import { useBankCard } from '../../../context/BankCardContext';
 import SummaryCard from '../../../components/Cards/SummaryCard/SummaryCard';
 import TransactionCard from '../../../components/Cards/TransactionCard/TransactionCard';
 import ExpenseChart from '../../../components/Charts/ExpenseChart/ExpenseChart';
 import SimpleTransactionForm from '../../../components/SimpleTransactionForm/SimpleTransactionForm';
 import FloatingButton from '../../../components/FloatingButton/FloatingButton';
-import { TrendingUp, TrendingDown, Wallet, Calendar, ChevronDown, Plus, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Calendar, ChevronDown, Plus, Clock, Building2 } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -21,6 +22,8 @@ const Dashboard = () => {
     getMonthlyProjection,
     getYearlyProjection
   } = useFinancial();
+  
+  const { getTotalBalance } = useBankCard();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('month');
@@ -224,19 +227,23 @@ const Dashboard = () => {
       const category = categories.find(c => c.id === transaction.categoryId);
       if (category) {
         if (!categoryTotals[category.name]) {
-          categoryTotals[category.name] = 0;
+          categoryTotals[category.name] = {
+            value: 0,
+            color: category.color
+          };
         }
-        categoryTotals[category.name] += transaction.amount;
+        categoryTotals[category.name].value += transaction.amount;
       }
     });
 
-    const total = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0);
+    const total = Object.values(categoryTotals).reduce((sum, item) => sum + item.value, 0);
     
     return Object.entries(categoryTotals)
-      .map(([name, value]) => ({
+      .map(([name, item]) => ({
         name,
-        value,
-        percentage: total > 0 ? ((value / total) * 100).toFixed(1) : 0
+        value: item.value,
+        color: item.color,
+        percentage: total > 0 ? ((item.value / total) * 100).toFixed(1) : 0
       }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 8);
@@ -386,6 +393,52 @@ const Dashboard = () => {
           />
         ))}
       </div>
+
+      {/* Card de Saldo Bancário */}
+      {(() => {
+        const bankBalance = getTotalBalance();
+        const transactionBalance = getBalance(periodTransactions);
+        const difference = bankBalance - transactionBalance;
+        
+        return (
+          <div className="bank-balance-card" onClick={() => navigate('/bank-accounts')} style={{ cursor: 'pointer' }}>
+            <div className="bank-balance-header">
+              <div className="bank-balance-icon">
+                <Building2 size={24} />
+              </div>
+              <div className="bank-balance-info">
+                <h3 className="bank-balance-title">Saldo Bancário Total</h3>
+                <p className="bank-balance-subtitle">Saldo de todas as contas bancárias</p>
+              </div>
+            </div>
+            <div className="bank-balance-content">
+              <div className="bank-balance-value">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(bankBalance)}
+              </div>
+              {difference !== 0 && (
+                <div className="bank-balance-difference">
+                  <span className="difference-label">
+                    Diferença com transações:
+                  </span>
+                  <span className={`difference-value ${difference >= 0 ? 'positive' : 'negative'}`}>
+                    {difference >= 0 ? '+' : ''}
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(difference)}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="bank-balance-footer">
+              <span className="bank-balance-link">Ver contas bancárias →</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Card de Projeção */}
       {projectionData && selectedPeriod === 'month' && (

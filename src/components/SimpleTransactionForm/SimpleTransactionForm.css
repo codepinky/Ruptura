@@ -165,7 +165,7 @@
 .form-group textarea {
   width: 100%;
   padding: var(--space-3);
-  min-height: 44px;
+  min-height: 46px;
   border: 1px solid #d1d5db;
   border-radius: var(--radius-sm);
   /* Garantir font-size mínimo de 16px para prevenir zoom no iOS Safari */
@@ -176,6 +176,14 @@
   /* Prevenir zoom no iOS */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+/* Exceção para o seletor de moeda - não aplicar estilos globais de select */
+.currency-selector-wrapper .currency-selector {
+  width: auto !important;
+  /* min-width: 80px !important; */
+  max-width: none !important;
+  box-sizing: content-box !important;
 }
 
 /* Wrapper para input de valor com símbolo da moeda */
@@ -203,6 +211,99 @@
 
 .amount-input {
   padding-left: calc(var(--space-3) + 2.5ch) !important;
+  padding-right: calc(var(--space-3) + 65px) !important;
+}
+
+/* Wrapper para o seletor de moeda */
+.currency-selector-wrapper {
+  position: absolute;
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.currency-icon {
+  color: #6b7280;
+  flex-shrink: 0;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.simple-form.dark-theme .currency-icon {
+  color: #9ca3af;
+  opacity: 0.8;
+}
+
+.currency-selector {
+  border: none;
+  background: transparent !important;
+  background-color: transparent !important;
+  font-size: clamp(0.875rem, 1.2vw + 0.4rem, 0.875rem);
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  padding: var(--space-1) var(--space-1);
+  padding-right: calc(var(--space-1) + 18px);
+  min-height: auto;
+  height: auto;
+  outline: none;
+  transition: color 0.2s ease;
+  min-width: auto;
+  width: auto;
+  max-width: none;
+  pointer-events: auto;
+  appearance: auto;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  line-height: var(--line-height-base);
+  border-radius: 0;
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.currency-selector:hover {
+  color: #111827;
+}
+
+.currency-selector:focus {
+  outline: none;
+  color: #10B981;
+}
+
+.currency-selector:focus-visible {
+  outline: 2px solid #10B981;
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.simple-form.dark-theme .currency-selector {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none;
+  color: #f9fafb;
+}
+
+.simple-form.dark-theme .currency-selector:hover {
+  color: #f3f4f6;
+}
+
+.simple-form.dark-theme .currency-selector:focus {
+  color: #10B981;
+}
+
+.simple-form.dark-theme .currency-selector:focus-visible {
+  outline: 2px solid #10B981;
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .amount-input-wrapper .amount-input.error {
@@ -213,6 +314,8 @@
   min-height: auto;
   padding-top: var(--space-3);
   padding-bottom: var(--space-3);
+  resize: vertical;
+  min-height: clamp(80px, 10vh, 120px);
 }
 
 .form-group input:focus,
@@ -249,11 +352,6 @@
 .form-group input.error,
 .form-group select.error {
   border-color: #ef4444;
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: clamp(80px, 10vh, 120px);
 }
 
 /* Container para isolar o date picker */
@@ -497,6 +595,20 @@
     font-size: 1rem !important; /* Forçar 16px para prevenir zoom no iOS */
   }
   
+  /* Seletor de moeda em mobile */
+  .currency-selector {
+    min-width: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    font-size: 0.875rem !important;
+    padding: var(--space-1) var(--space-1) !important;
+    padding-right: calc(var(--space-1) + 18px) !important;
+  }
+  
+  .amount-input {
+    padding-right: calc(var(--space-3) + 70px) !important;
+  }
+  
   .form-header {
     padding: var(--space-4) var(--space-4) 0;
     position: sticky;
@@ -531,5 +643,26 @@
   
   .form-content {
     padding: 0 var(--space-5) var(--space-5);
+  }
+  
+  /* Seletor de moeda em tablets */
+  .currency-selector {
+    min-width: auto;
+  }
+  
+  .amount-input {
+    padding-right: calc(var(--space-3) + 75px) !important;
+  }
+}
+
+/* Ajuste específico para telas 485x939 (tablets em modo paisagem) */
+@media (min-width: 480px) and (max-width: 600px) and (min-height: 800px) {
+  .currency-selector {
+    min-width: 95px !important;
+    font-size: 0.875rem !important;
+  }
+  
+  .amount-input {
+    padding-right: calc(var(--space-3) + 115px) !important;
   }
 }

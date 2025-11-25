@@ -145,16 +145,10 @@ const CategoryForm = ({
     onClose();
   };
 
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  };
-
   if (!isOpen) return null;
 
   const modalContent = (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
+    <div className="modal-overlay">
       <div className="category-form-modal" onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <h2 className="form-title">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, Bell } from 'lucide-react';
 import { useCalendar, CALENDAR_ITEM_TYPES } from '../../../context/CalendarContext';
 import { useNotification } from '../../../context/NotificationContext';
+import { useTheme } from '../../../context/ThemeContext';
 import './ReminderForm.css';
 
 const ADVANCE_OPTIONS = [
@@ -16,6 +17,7 @@ const ADVANCE_OPTIONS = [
 const ReminderForm = ({ isOpen, onClose, editingItem = null }) => {
   const { addReminder, updateReminder } = useCalendar();
   const { success, error } = useNotification();
+  const { currentTheme } = useTheme();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -72,7 +74,7 @@ const ReminderForm = ({ isOpen, onClose, editingItem = null }) => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -92,10 +94,10 @@ const ReminderForm = ({ isOpen, onClose, editingItem = null }) => {
       };
 
       if (editingItem) {
-        updateReminder({ ...reminderData, id: editingItem.id });
+        await updateReminder({ ...reminderData, id: editingItem.id });
         success('Lembrete atualizado com sucesso!');
       } else {
-        addReminder(reminderData);
+        await addReminder(reminderData);
         success('Lembrete criado com sucesso!');
       }
 
@@ -108,8 +110,8 @@ const ReminderForm = ({ isOpen, onClose, editingItem = null }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="reminder-form-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className={`reminder-form-modal ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <h2>{editingItem ? 'Editar Lembrete' : 'Novo Lembrete'}</h2>
           <button className="close-btn" onClick={onClose}>
@@ -147,7 +149,7 @@ const ReminderForm = ({ isOpen, onClose, editingItem = null }) => {
           </div>
 
           <div className="form-row">
-            <div className="form-group">
+            <div className="form-group date-input-group">
               <label htmlFor="date">
                 <Calendar size={16} />
                 Data <span className="required">*</span>
@@ -162,7 +164,7 @@ const ReminderForm = ({ isOpen, onClose, editingItem = null }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group date-input-group">
               <label htmlFor="time">
                 <Clock size={16} />
                 Hora <span className="required">*</span>

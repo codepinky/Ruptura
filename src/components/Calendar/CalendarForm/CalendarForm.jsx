@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useCalendar, DEFAULT_CALENDAR_COLORS } from '../../../context/CalendarContext';
+import { useTheme } from '../../../context/ThemeContext';
 import './CalendarForm.css';
 
 const CalendarForm = ({ onClose }) => {
   const { addCalendar } = useCalendar();
+  const { currentTheme } = useTheme();
   const [name, setName] = useState('');
   const [color, setColor] = useState(DEFAULT_CALENDAR_COLORS[0]);
 
@@ -23,8 +25,8 @@ const CalendarForm = ({ onClose }) => {
   };
 
   return (
-    <div className="calendar-form-overlay" onClick={onClose}>
-      <div className="calendar-form-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="calendar-form-overlay">
+      <div className={`calendar-form-modal ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
         <div className="calendar-form-header">
           <h2>Novo Calendário</h2>
           <button className="close-btn" onClick={onClose}>
@@ -75,6 +77,11 @@ const CalendarForm = ({ onClose }) => {
 };
 
 export default CalendarForm;
+
+
+
+
+
 
 
 

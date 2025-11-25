@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, MapPin, Palette, Repeat } from 'lucide-react';
 import { useCalendar, CALENDAR_ITEM_TYPES, DEFAULT_COLORS } from '../../../context/CalendarContext';
 import { useNotification } from '../../../context/NotificationContext';
+import { useTheme } from '../../../context/ThemeContext';
 import './EventForm.css';
 
 const EventForm = ({ isOpen, onClose, editingItem = null }) => {
   const { addEvent, updateEvent } = useCalendar();
   const { success, error } = useNotification();
+  const { currentTheme } = useTheme();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -86,7 +88,7 @@ const EventForm = ({ isOpen, onClose, editingItem = null }) => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -104,15 +106,19 @@ const EventForm = ({ isOpen, onClose, editingItem = null }) => {
         startDate: startDateTime.toISOString(),
         endDate: endDateTime.toISOString(),
         color: formData.color,
-        location: formData.location.trim(),
-        recurrence: formData.recurrence !== 'none' ? formData.recurrence : undefined
+        location: formData.location.trim() || null
       };
+      
+      // Adicionar recurrence apenas se não for 'none'
+      if (formData.recurrence && formData.recurrence !== 'none') {
+        eventData.recurrence = formData.recurrence;
+      }
 
       if (editingItem) {
-        updateEvent({ ...eventData, id: editingItem.id });
+        await updateEvent({ ...eventData, id: editingItem.id });
         success('Evento atualizado com sucesso!');
       } else {
-        addEvent(eventData);
+        await addEvent(eventData);
         success('Evento criado com sucesso!');
       }
 
@@ -125,8 +131,8 @@ const EventForm = ({ isOpen, onClose, editingItem = null }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="event-form-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className={`event-form-modal ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <h2>{editingItem ? 'Editar Evento' : 'Novo Evento'}</h2>
           <button className="close-btn" onClick={onClose}>
@@ -164,7 +170,7 @@ const EventForm = ({ isOpen, onClose, editingItem = null }) => {
           </div>
 
           <div className="form-row">
-            <div className="form-group">
+            <div className="form-group date-input-group">
               <label htmlFor="startDate">
                 <Calendar size={16} />
                 Data de Início <span className="required">*</span>
@@ -179,7 +185,7 @@ const EventForm = ({ isOpen, onClose, editingItem = null }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group date-input-group">
               <label htmlFor="startTime">
                 <Clock size={16} />
                 Hora de Início
@@ -195,7 +201,7 @@ const EventForm = ({ isOpen, onClose, editingItem = null }) => {
           </div>
 
           <div className="form-row">
-            <div className="form-group">
+            <div className="form-group date-input-group">
               <label htmlFor="endDate">
                 <Calendar size={16} />
                 Data de Término <span className="required">*</span>
@@ -210,7 +216,7 @@ const EventForm = ({ isOpen, onClose, editingItem = null }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group date-input-group">
               <label htmlFor="endTime">
                 <Clock size={16} />
                 Hora de Término

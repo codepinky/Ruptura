@@ -46,6 +46,7 @@
   pointer-events: auto;
   /* Bloquear scroll e touch no conteúdo atrás */
   touch-action: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease, backdrop-filter 0.2s ease;
 }
 
 .main-content {

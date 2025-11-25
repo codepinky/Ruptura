@@ -582,10 +582,7 @@ const Spreadsheet = () => {
 
       {/* Modal para adicionar dinheiro à meta */}
       {addingMoneyToGoal && (
-        <div className="modal-overlay" onClick={() => {
-          setAddingMoneyToGoal(null);
-          setAmountToAdd('');
-        }}>
+        <div className="modal-overlay">
           <div className="modal-content add-money-modal" onClick={(e) => e.stopPropagation()}>
             <div className="add-money-header">
               <h3>Adicionar Valor à Meta</h3>
@@ -644,10 +641,7 @@ const Spreadsheet = () => {
 
       {/* Modal para adicionar dinheiro à economia */}
       {addingMoneyToSaving && (
-        <div className="modal-overlay" onClick={() => {
-          setAddingMoneyToSaving(null);
-          setAmountToAdd('');
-        }}>
+        <div className="modal-overlay">
           <div className="modal-content add-money-modal" onClick={(e) => e.stopPropagation()}>
             <div className="add-money-header">
               <h3>Adicionar Valor à Economia</h3>

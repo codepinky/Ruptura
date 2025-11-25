@@ -255,7 +255,7 @@ const GoalForm = ({ isOpen, onClose, goal = null, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className={`goal-form ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <h2>

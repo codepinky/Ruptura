@@ -333,7 +333,7 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -345,13 +345,13 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
         description: formData.description || '',
         amount: parseFloat(formData.amount),
         type: formData.type,
-        categoryId: parseInt(formData.categoryId),
+        categoryId: formData.categoryId, // Manter como string (Firestore usa strings)
         date: formData.date,
         notes: ''
       };
 
-      // Adicionar nova transação (o ID será gerado pelo reducer)
-      addTransaction(transactionData);
+      // Adicionar nova transação
+      await addTransaction(transactionData);
       success('Transação adicionada com sucesso!');
       onClose();
     } catch (err) {
@@ -365,7 +365,7 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className={`simple-form ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <h2>Nova Transação</h2>
@@ -419,43 +419,8 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
 
           <div className="form-group">
             <label>
-              <Globe size={16} />
-              Moeda *
-            </label>
-            <select
-              name="currency"
-              value={selectedCurrency.code}
-              onChange={(e) => {
-                const currency = CURRENCIES.find(c => c.code === e.target.value);
-                if (currency) {
-                  setSelectedCurrency(currency);
-                  // Limpar e reformatar o valor quando mudar a moeda
-                  if (displayAmount) {
-                    const numbers = displayAmount.replace(/\D/g, '');
-                    if (numbers) {
-                      const amount = parseFloat(numbers) / 100;
-                      const formatted = new Intl.NumberFormat(currency.locale, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      }).format(amount);
-                      setDisplayAmount(formatted);
-                    }
-                  }
-                }
-              }}
-            >
-              {CURRENCIES.map(currency => (
-                <option key={currency.code} value={currency.code}>
-                  {currency.name} ({currency.code})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>
               <DollarSign size={16} />
-              Valor em {selectedCurrency.name} ({selectedCurrency.code}) *
+              Valor *
             </label>
             <div className="amount-input-wrapper">
               <span className="currency-symbol">{selectedCurrency.symbol}</span>
@@ -470,6 +435,38 @@ const SimpleTransactionForm = ({ isOpen, onClose }) => {
                 aria-describedby={errors.amount ? 'amount-error' : undefined}
                 autoComplete="off"
               />
+              <div className="currency-selector-wrapper">
+                <Globe size={14} className="currency-icon" />
+                <select
+                  name="currency"
+                  value={selectedCurrency.code}
+                  onChange={(e) => {
+                    const currency = CURRENCIES.find(c => c.code === e.target.value);
+                    if (currency) {
+                      setSelectedCurrency(currency);
+                      // Limpar e reformatar o valor quando mudar a moeda
+                      if (displayAmount) {
+                        const numbers = displayAmount.replace(/\D/g, '');
+                        if (numbers) {
+                          const amount = parseFloat(numbers) / 100;
+                          const formatted = new Intl.NumberFormat(currency.locale, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }).format(amount);
+                          setDisplayAmount(formatted);
+                        }
+                      }
+                    }
+                  }}
+                  className="currency-selector"
+                >
+                  {CURRENCIES.map(currency => (
+                    <option key={currency.code} value={currency.code}>
+                      {currency.code}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             {errors.amount && <span id="amount-error" className="error" role="alert">{errors.amount}</span>}
           </div>

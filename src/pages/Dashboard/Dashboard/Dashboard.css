@@ -742,6 +742,116 @@
   }
 }
 
+/* Bank Balance Card */
+.bank-balance-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-7);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.bank-balance-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+}
+
+.bank-balance-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.bank-balance-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.bank-balance-info {
+  flex: 1;
+}
+
+.bank-balance-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.bank-balance-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.bank-balance-content {
+  margin-bottom: var(--space-4);
+}
+
+.bank-balance-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.bank-balance-difference {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: var(--space-3);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.difference-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.difference-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.difference-value.positive {
+  color: #10B981;
+}
+
+.difference-value.negative {
+  color: #EF4444;
+}
+
+.bank-balance-footer {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-primary);
+}
+
+.bank-balance-link {
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.bank-balance-card:hover .bank-balance-link {
+  color: var(--color-secondary);
+}
+
 /* Charts Grid */
 .charts-grid {
   display: flex;

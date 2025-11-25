@@ -1,4 +1,15 @@
 import React, { createContext, useContext, useReducer, useEffect, useState, useMemo, useCallback } from 'react';
+import { 
+  collection, 
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  onSnapshot, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { useAuth } from './AuthContext';
 
 // Tipos de itens do calendário
 export const CALENDAR_ITEM_TYPES = {
@@ -159,7 +170,10 @@ function calendarReducer(state, action) {
     case ACTIONS.LOAD_DATA:
       return {
         ...state,
-        ...action.payload,
+        events: action.payload.events !== undefined ? action.payload.events : state.events,
+        tasks: action.payload.tasks !== undefined ? action.payload.tasks : state.tasks,
+        reminders: action.payload.reminders !== undefined ? action.payload.reminders : state.reminders,
+        notes: action.payload.notes !== undefined ? action.payload.notes : state.notes,
         loading: false,
         error: null
       };
@@ -176,83 +190,327 @@ const CalendarContext = createContext();
 export function CalendarProvider({ children }) {
   const [state, dispatch] = useReducer(calendarReducer, initialState);
   const [isInitialized, setIsInitialized] = useState(false);
+  const { currentUser } = useAuth();
 
-  // Carregar dados do localStorage apenas uma vez na montagem
+  // Carregar dados do Firestore quando usuário estiver autenticado
   useEffect(() => {
-    const savedData = localStorage.getItem('calendar-data');
-    
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
-        dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
-      } catch (error) {
-        console.error('Erro ao carregar dados do calendário do localStorage:', error);
+    if (!currentUser) {
+      dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+      setIsInitialized(true);
+      return;
+    }
+
+    const userId = currentUser.uid;
+    dispatch({ type: ACTIONS.SET_LOADING, payload: true });
+
+    // Sincronizar eventos
+    const eventsRef = collection(db, 'users', userId, 'events');
+    // Remover orderBy temporariamente para evitar problemas com índices
+    const unsubscribeEvents = onSnapshot(
+      eventsRef,
+      (snapshot) => {
+        const events = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        // Ordenar localmente
+        events.sort((a, b) => {
+          const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
+          const dateB = b.startDate ? new Date(b.startDate) : new Date(0);
+          return dateB - dateA; // Descendente
+        });
+        console.log('📅 Eventos carregados:', events.length);
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: { events } });
+      },
+      (error) => {
+        console.error('❌ Erro ao carregar eventos:', error);
+        dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao carregar eventos' });
       }
-    }
-    
-    setIsInitialized(true);
-  }, []);
+    );
 
-  // Salvar dados no localStorage apenas após inicialização
-  useEffect(() => {
-    if (isInitialized) {
-      localStorage.setItem('calendar-data', JSON.stringify({
-        events: state.events,
-        tasks: state.tasks,
-        reminders: state.reminders,
-        notes: state.notes
-      }));
-    }
-  }, [state.events, state.tasks, state.reminders, state.notes, isInitialized]);
+    // Sincronizar tarefas
+    const tasksRef = collection(db, 'users', userId, 'tasks');
+    const unsubscribeTasks = onSnapshot(
+      tasksRef,
+      (snapshot) => {
+        const tasks = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        // Ordenar localmente
+        tasks.sort((a, b) => {
+          const dateA = a.dueDate ? new Date(a.dueDate) : new Date(0);
+          const dateB = b.dueDate ? new Date(b.dueDate) : new Date(0);
+          return dateB - dateA; // Descendente
+        });
+        console.log('✅ Tarefas carregadas:', tasks.length);
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: { tasks } });
+      },
+      (error) => {
+        console.error('❌ Erro ao carregar tarefas:', error);
+        dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao carregar tarefas' });
+      }
+    );
+
+    // Sincronizar lembretes
+    const remindersRef = collection(db, 'users', userId, 'reminders');
+    const unsubscribeReminders = onSnapshot(
+      remindersRef,
+      (snapshot) => {
+        const reminders = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        // Ordenar localmente
+        reminders.sort((a, b) => {
+          const dateA = a.date ? new Date(a.date) : new Date(0);
+          const dateB = b.date ? new Date(b.date) : new Date(0);
+          return dateB - dateA; // Descendente
+        });
+        console.log('🔔 Lembretes carregados:', reminders.length);
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: { reminders } });
+      },
+      (error) => {
+        console.error('❌ Erro ao carregar lembretes:', error);
+        dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao carregar lembretes' });
+      }
+    );
+
+    // Sincronizar notas
+    const notesRef = collection(db, 'users', userId, 'notes');
+    const unsubscribeNotes = onSnapshot(
+      notesRef,
+      (snapshot) => {
+        const notes = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        // Ordenar localmente
+        notes.sort((a, b) => {
+          const dateA = a.date ? new Date(a.date) : new Date(0);
+          const dateB = b.date ? new Date(b.date) : new Date(0);
+          return dateB - dateA; // Descendente
+        });
+        console.log('📝 Notas carregadas:', notes.length);
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: { notes } });
+        setIsInitialized(true);
+        dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+      },
+      (error) => {
+        console.error('❌ Erro ao carregar notas:', error);
+        dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao carregar notas' });
+        setIsInitialized(true);
+        dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+      }
+    );
+
+    // Cleanup
+    return () => {
+      unsubscribeEvents();
+      unsubscribeTasks();
+      unsubscribeReminders();
+      unsubscribeNotes();
+    };
+  }, [currentUser]);
 
   // Actions - Memoizadas
-  const addEvent = useCallback((event) => {
-    dispatch({ type: ACTIONS.ADD_EVENT, payload: event });
-  }, []);
+  // Função auxiliar para remover campos undefined
+  const removeUndefinedFields = (obj) => {
+    const cleaned = {};
+    Object.keys(obj).forEach(key => {
+      if (obj[key] !== undefined) {
+        cleaned[key] = obj[key];
+      }
+    });
+    return cleaned;
+  };
 
-  const updateEvent = useCallback((event) => {
-    dispatch({ type: ACTIONS.UPDATE_EVENT, payload: event });
-  }, []);
+  const addEvent = useCallback(async (event) => {
+    if (!currentUser) {
+      console.error('❌ Usuário não autenticado');
+      return;
+    }
+    
+    try {
+      console.log('🔵 Adicionando evento:', event);
+      const eventsRef = collection(db, 'users', currentUser.uid, 'events');
+      // Remover campos undefined antes de salvar
+      const cleanedEvent = removeUndefinedFields({
+        ...event,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      const docRef = await addDoc(eventsRef, cleanedEvent);
+      console.log('✅ Evento adicionado com ID:', docRef.id);
+    } catch (error) {
+      console.error('❌ Erro ao adicionar evento:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao adicionar evento' });
+    }
+  }, [currentUser]);
 
-  const deleteEvent = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_EVENT, payload: id });
-  }, []);
+  const updateEvent = useCallback(async (event) => {
+    if (!currentUser || !event.id) return;
+    
+    try {
+      const eventRef = doc(db, 'users', currentUser.uid, 'events', event.id);
+      const { id, ...eventData } = event;
+      await updateDoc(eventRef, {
+        ...eventData,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar evento:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar evento' });
+    }
+  }, [currentUser]);
 
-  const addTask = useCallback((task) => {
-    dispatch({ type: ACTIONS.ADD_TASK, payload: task });
-  }, []);
+  const deleteEvent = useCallback(async (id) => {
+    if (!currentUser) return;
+    
+    try {
+      const eventRef = doc(db, 'users', currentUser.uid, 'events', id);
+      await deleteDoc(eventRef);
+    } catch (error) {
+      console.error('Erro ao deletar evento:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao deletar evento' });
+    }
+  }, [currentUser]);
 
-  const updateTask = useCallback((task) => {
-    dispatch({ type: ACTIONS.UPDATE_TASK, payload: task });
-  }, []);
+  const addTask = useCallback(async (task) => {
+    if (!currentUser) return;
+    
+    try {
+      const tasksRef = collection(db, 'users', currentUser.uid, 'tasks');
+      const cleanedTask = removeUndefinedFields({
+        ...task,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      await addDoc(tasksRef, cleanedTask);
+    } catch (error) {
+      console.error('Erro ao adicionar tarefa:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao adicionar tarefa' });
+    }
+  }, [currentUser]);
 
-  const deleteTask = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_TASK, payload: id });
-  }, []);
+  const updateTask = useCallback(async (task) => {
+    if (!currentUser || !task.id) return;
+    
+    try {
+      const taskRef = doc(db, 'users', currentUser.uid, 'tasks', task.id);
+      const { id, ...taskData } = task;
+      await updateDoc(taskRef, {
+        ...taskData,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar tarefa' });
+    }
+  }, [currentUser]);
 
-  const addReminder = useCallback((reminder) => {
-    dispatch({ type: ACTIONS.ADD_REMINDER, payload: reminder });
-  }, []);
+  const deleteTask = useCallback(async (id) => {
+    if (!currentUser) return;
+    
+    try {
+      const taskRef = doc(db, 'users', currentUser.uid, 'tasks', id);
+      await deleteDoc(taskRef);
+    } catch (error) {
+      console.error('Erro ao deletar tarefa:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao deletar tarefa' });
+    }
+  }, [currentUser]);
 
-  const updateReminder = useCallback((reminder) => {
-    dispatch({ type: ACTIONS.UPDATE_REMINDER, payload: reminder });
-  }, []);
+  const addReminder = useCallback(async (reminder) => {
+    if (!currentUser) return;
+    
+    try {
+      const remindersRef = collection(db, 'users', currentUser.uid, 'reminders');
+      const cleanedReminder = removeUndefinedFields({
+        ...reminder,
+        notified: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      await addDoc(remindersRef, cleanedReminder);
+    } catch (error) {
+      console.error('Erro ao adicionar lembrete:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao adicionar lembrete' });
+    }
+  }, [currentUser]);
 
-  const deleteReminder = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_REMINDER, payload: id });
-  }, []);
+  const updateReminder = useCallback(async (reminder) => {
+    if (!currentUser || !reminder.id) return;
+    
+    try {
+      const reminderRef = doc(db, 'users', currentUser.uid, 'reminders', reminder.id);
+      const { id, ...reminderData } = reminder;
+      await updateDoc(reminderRef, {
+        ...reminderData,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar lembrete:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar lembrete' });
+    }
+  }, [currentUser]);
 
-  const addNote = useCallback((note) => {
-    dispatch({ type: ACTIONS.ADD_NOTE, payload: note });
-  }, []);
+  const deleteReminder = useCallback(async (id) => {
+    if (!currentUser) return;
+    
+    try {
+      const reminderRef = doc(db, 'users', currentUser.uid, 'reminders', id);
+      await deleteDoc(reminderRef);
+    } catch (error) {
+      console.error('Erro ao deletar lembrete:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao deletar lembrete' });
+    }
+  }, [currentUser]);
 
-  const updateNote = useCallback((note) => {
-    dispatch({ type: ACTIONS.UPDATE_NOTE, payload: note });
-  }, []);
+  const addNote = useCallback(async (note) => {
+    if (!currentUser) return;
+    
+    try {
+      const notesRef = collection(db, 'users', currentUser.uid, 'notes');
+      const cleanedNote = removeUndefinedFields({
+        ...note,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      await addDoc(notesRef, cleanedNote);
+    } catch (error) {
+      console.error('Erro ao adicionar nota:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao adicionar nota' });
+    }
+  }, [currentUser]);
 
-  const deleteNote = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_NOTE, payload: id });
-  }, []);
+  const updateNote = useCallback(async (note) => {
+    if (!currentUser || !note.id) return;
+    
+    try {
+      const noteRef = doc(db, 'users', currentUser.uid, 'notes', note.id);
+      const { id, ...noteData } = note;
+      await updateDoc(noteRef, {
+        ...noteData,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar nota:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar nota' });
+    }
+  }, [currentUser]);
+
+  const deleteNote = useCallback(async (id) => {
+    if (!currentUser) return;
+    
+    try {
+      const noteRef = doc(db, 'users', currentUser.uid, 'notes', id);
+      await deleteDoc(noteRef);
+    } catch (error) {
+      console.error('Erro ao deletar nota:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao deletar nota' });
+    }
+  }, [currentUser]);
 
   // Funções utilitárias
   const getItemsByDate = useCallback((date) => {
@@ -356,6 +614,15 @@ export function CalendarProvider({ children }) {
       });
   }, [state.tasks]);
 
+  // Funções de compatibilidade para componentes que usam getEventsByDate e getNotesByDate
+  const getEventsByDate = useCallback((date) => {
+    return getItemsByDate(date).events;
+  }, [getItemsByDate]);
+
+  const getNotesByDate = useCallback((date) => {
+    return getItemsByDate(date).notes;
+  }, [getItemsByDate]);
+
   const value = useMemo(() => ({
     ...state,
     addEvent,
@@ -375,6 +642,8 @@ export function CalendarProvider({ children }) {
     getItemsByMonth,
     getUpcomingReminders,
     getPendingTasks,
+    getEventsByDate,
+    getNotesByDate,
     CALENDAR_ITEM_TYPES,
     TASK_STATUS,
     PRIORITY,
@@ -397,7 +666,9 @@ export function CalendarProvider({ children }) {
     getItemsByDateRange,
     getItemsByMonth,
     getUpcomingReminders,
-    getPendingTasks
+    getPendingTasks,
+    getEventsByDate,
+    getNotesByDate
   ]);
 
   return (

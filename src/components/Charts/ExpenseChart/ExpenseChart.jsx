@@ -68,7 +68,7 @@ const ExpenseChart = ({ data }) => {
     return () => observer.disconnect();
   }, []);
 
-  // Paleta de cores minimalista com gradientes sutis
+  // Paleta de cores minimalista com gradientes sutis (fallback quando categoria não tem cor)
   const COLORS = [
     'rgba(59, 130, 246, 0.8)',   // Azul suave
     'rgba(139, 92, 246, 0.8)',   // Roxo suave
@@ -91,16 +91,50 @@ const ExpenseChart = ({ data }) => {
     'rgba(20, 184, 166, 1)'
   ];
 
+  // Função para converter cor HEX para RGBA
+  const hexToRgba = (hex, alpha = 0.8) => {
+    if (!hex) return null;
+    // Remove # se presente
+    hex = hex.replace('#', '');
+    // Converte para RGB
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  // Usar cores das categorias se disponíveis, senão usar paleta padrão
+  const backgroundColor = data.map((item, index) => {
+    if (item.color) {
+      return hexToRgba(item.color, 0.8);
+    }
+    return COLORS[index % COLORS.length];
+  });
+
+  const borderColor = data.map((item, index) => {
+    if (item.color) {
+      return hexToRgba(item.color, 1);
+    }
+    return BORDER_COLORS[index % BORDER_COLORS.length];
+  });
+
+  const hoverBackgroundColor = data.map((item, index) => {
+    if (item.color) {
+      return hexToRgba(item.color, 1);
+    }
+    return COLORS[index % COLORS.length].replace('0.8', '1');
+  });
+
   // Preparar dados para Chart.js
   const chartData = {
     labels: data.map(item => item.name),
     datasets: [
       {
         data: data.map(item => item.value),
-        backgroundColor: COLORS,
-        borderColor: BORDER_COLORS,
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
         borderWidth: 2,
-        hoverBackgroundColor: COLORS.map(color => color.replace('0.8', '1')),
+        hoverBackgroundColor: hoverBackgroundColor,
         hoverBorderWidth: 3,
         hoverOffset: 8,
         cutout: isMobile ? '65%' : '55%',
@@ -242,19 +276,34 @@ const ExpenseChart = ({ data }) => {
               onTouchStart={(e) => e.preventDefault()}
               onTouchMove={(e) => e.preventDefault()}
             >
-              {data.map((item, index) => (
-                <div 
-                  key={index}
-                  className={`legend-item ${hoveredIndex === index ? 'active' : ''}`}
-                  onTouchStart={() => setHoveredIndex(index)}
-                  onTouchEnd={() => setHoveredIndex(null)}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                >
+              {data.map((item, index) => {
+                // Função para converter cor HEX para RGBA
+                const hexToRgba = (hex, alpha = 0.8) => {
+                  if (!hex) return COLORS[index % COLORS.length];
+                  hex = hex.replace('#', '');
+                  const r = parseInt(hex.substring(0, 2), 16);
+                  const g = parseInt(hex.substring(2, 4), 16);
+                  const b = parseInt(hex.substring(4, 6), 16);
+                  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                };
+                
+                const itemColor = item.color 
+                  ? hexToRgba(item.color, 0.8) 
+                  : COLORS[index % COLORS.length];
+                
+                return (
                   <div 
-                    className="legend-color"
-                    style={{ backgroundColor: COLORS[index] }}
-                  />
+                    key={index}
+                    className={`legend-item ${hoveredIndex === index ? 'active' : ''}`}
+                    onTouchStart={() => setHoveredIndex(index)}
+                    onTouchEnd={() => setHoveredIndex(null)}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  >
+                    <div 
+                      className="legend-color"
+                      style={{ backgroundColor: itemColor }}
+                    />
                   <div className="legend-content">
                     <span className="legend-label">{item.name}</span>
                     <span className="legend-value">
@@ -266,7 +315,8 @@ const ExpenseChart = ({ data }) => {
                     <span className="legend-percentage">{item.percentage}%</span>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

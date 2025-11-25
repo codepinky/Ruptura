@@ -2,11 +2,13 @@ import React from 'react';
 import { X, Calendar, Clock, MapPin, Edit, Trash2, Tag, FileText, Bell, Flag, CheckCircle } from 'lucide-react';
 import { useCalendar, CALENDAR_ITEM_TYPES, TASK_STATUS, PRIORITY } from '../../../context/CalendarContext';
 import { useNotification } from '../../../context/NotificationContext';
+import { useTheme } from '../../../context/ThemeContext';
 import './EventDetailModal.css';
 
 const EventDetailModal = ({ item, isOpen, onClose, onEdit }) => {
   const { deleteEvent, deleteTask, deleteReminder, deleteNote } = useCalendar();
   const { success, error } = useNotification();
+  const { currentTheme } = useTheme();
 
   if (!isOpen || !item) return null;
 
@@ -257,9 +259,9 @@ const EventDetailModal = ({ item, isOpen, onClose, onEdit }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div 
-        className="event-detail-modal" 
+        className={`event-detail-modal ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} 
         onClick={(e) => e.stopPropagation()}
         style={{ borderTopColor: item.color }}
       >

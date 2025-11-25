@@ -109,7 +109,7 @@ const SavingForm = ({ isOpen, onClose, saving = null, onSubmit }) => {
   if (!isOpen) return null;
 
   const modalContent = (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="saving-form" onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <h2 className="form-title">

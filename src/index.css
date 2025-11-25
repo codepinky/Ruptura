@@ -113,9 +113,7 @@
 
 
 /* Forçar aplicação das variáveis em modo escuro */
-.dark * {
-  background-color: inherit;
-}
+
 
 /* Forçar SummaryCard no modo escuro */
 .dark .summary-card {

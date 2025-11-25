@@ -8,6 +8,7 @@ import './Layout.css';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -15,6 +16,7 @@ const Layout = ({ children }) => {
 
   const closeSidebar = () => {
     setSidebarOpen(false);
+    setDragOffset(0); // Resetar drag offset ao fechar
   };
 
   // Bloquear scroll e interações do body quando sidebar estiver aberto no mobile
@@ -106,8 +108,18 @@ const Layout = ({ children }) => {
   return (
     <SearchProvider>
       <div className="layout">
-        <Sidebar sidebarOpen={sidebarOpen} onNavigate={closeSidebar} />
-        <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={toggleSidebar} />
+        <Sidebar 
+          sidebarOpen={sidebarOpen} 
+          onNavigate={closeSidebar}
+          onDragChange={setDragOffset}
+        />
+        <div 
+          className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} 
+          onClick={toggleSidebar}
+          style={{
+            opacity: sidebarOpen ? Math.max(0, 1 - (dragOffset / 300)) : 0
+          }}
+        />
         
         <div className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
           <TopBar onMenuClick={toggleSidebar} />

@@ -893,10 +893,7 @@ const Planning = () => {
 
       {/* Modal para adicionar dinheiro */}
       {addingMoneyToGoal && (
-        <div className="add-money-modal-overlay" onClick={() => {
-          setAddingMoneyToGoal(null);
-          setAmountToAdd('');
-        }}>
+        <div className="add-money-modal-overlay">
           <div className="add-money-modal" onClick={(e) => e.stopPropagation()}>
             <div className="add-money-header">
               <h3>Adicionar Valor à Meta</h3>

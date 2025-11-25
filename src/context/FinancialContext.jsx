@@ -1,4 +1,18 @@
 import React, { createContext, useContext, useReducer, useEffect, useState, useMemo, useCallback } from 'react';
+import { 
+  collection, 
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  onSnapshot, 
+  query, 
+  orderBy,
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { useAuth } from './AuthContext';
+import { initializeUserData, DEFAULT_CATEGORIES } from '../utils/firebaseUtils';
 
 // Tipos de transação
 export const TRANSACTION_TYPES = {
@@ -6,34 +20,12 @@ export const TRANSACTION_TYPES = {
   EXPENSE: 'expense'
 };
 
-// Categorias padrão
-const DEFAULT_CATEGORIES = [
-  { id: 1, name: 'Salário', type: TRANSACTION_TYPES.INCOME, color: '#10B981' },
-  { id: 2, name: 'Freelance', type: TRANSACTION_TYPES.INCOME, color: '#3B82F6' },
-  { id: 3, name: 'Investimentos', type: TRANSACTION_TYPES.INCOME, color: '#8B5CF6' },
-  { id: 4, name: 'Alimentação', type: TRANSACTION_TYPES.EXPENSE, color: '#F59E0B' },
-  { id: 5, name: 'Transporte', type: TRANSACTION_TYPES.EXPENSE, color: '#EF4444' },
-  { id: 6, name: 'Moradia', type: TRANSACTION_TYPES.EXPENSE, color: '#6B7280' },
-  { id: 7, name: 'Saúde', type: TRANSACTION_TYPES.EXPENSE, color: '#EC4899' },
-  { id: 8, name: 'Educação', type: TRANSACTION_TYPES.EXPENSE, color: '#14B8A6' },
-  { id: 9, name: 'Lazer', type: TRANSACTION_TYPES.EXPENSE, color: '#F97316' },
-  { id: 10, name: 'Outros', type: TRANSACTION_TYPES.EXPENSE, color: '#64748B' },
-  { id: 11, name: 'Roupas', type: TRANSACTION_TYPES.EXPENSE, color: '#F43F5E' },
-  { id: 12, name: 'Tecnologia', type: TRANSACTION_TYPES.EXPENSE, color: '#06B6D4' },
-  { id: 13, name: 'Academia', type: TRANSACTION_TYPES.EXPENSE, color: '#84CC16' },
-  { id: 14, name: 'Streaming', type: TRANSACTION_TYPES.EXPENSE, color: '#8B5CF6' },
-  { id: 15, name: 'Combustível', type: TRANSACTION_TYPES.EXPENSE, color: '#F97316' },
-  { id: 16, name: 'Presentes', type: TRANSACTION_TYPES.EXPENSE, color: '#EC4899' },
-  { id: 17, name: 'Farmácia', type: TRANSACTION_TYPES.EXPENSE, color: '#14B8A6' },
-  { id: 18, name: 'Viagem', type: TRANSACTION_TYPES.EXPENSE, color: '#3B82F6' },
-  { id: 19, name: 'Café', type: TRANSACTION_TYPES.EXPENSE, color: '#F59E0B' },
-  { id: 20, name: 'Bônus', type: TRANSACTION_TYPES.INCOME, color: '#10B981' }
-];
+// Categorias padrão serão carregadas do Firestore
 
 // Estado inicial
 const initialState = {
   transactions: [],
-  categories: DEFAULT_CATEGORIES,
+  categories: [],
   budgets: [],
   goals: [],
   savings: [],
@@ -189,7 +181,11 @@ function financialReducer(state, action) {
     case ACTIONS.LOAD_DATA:
       return {
         ...state,
-        ...action.payload,
+        transactions: action.payload.transactions !== undefined ? action.payload.transactions : state.transactions,
+        categories: action.payload.categories !== undefined ? action.payload.categories : state.categories,
+        budgets: action.payload.budgets !== undefined ? action.payload.budgets : state.budgets,
+        goals: action.payload.goals !== undefined ? action.payload.goals : state.goals,
+        savings: action.payload.savings !== undefined ? action.payload.savings : state.savings,
         loading: false,
         error: null
       };
@@ -206,111 +202,364 @@ const FinancialContext = createContext();
 export function FinancialProvider({ children }) {
   const [state, dispatch] = useReducer(financialReducer, initialState);
   const [isInitialized, setIsInitialized] = useState(false);
+  const { currentUser } = useAuth();
 
-
-  // Carregar dados do localStorage apenas uma vez na montagem
+  // Carregar dados do Firestore quando usuário estiver autenticado
   useEffect(() => {
-    const savedData = localStorage.getItem('financial-data');
-    
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
-        // Carregar dados salvos
-        dispatch({ type: ACTIONS.LOAD_DATA, payload: data });
-      } catch (error) {
-        console.error('Erro ao carregar dados do localStorage:', error);
+    if (!currentUser) {
+      dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+      setIsInitialized(true);
+      return;
+    }
+
+    const userId = currentUser.uid;
+    dispatch({ type: ACTIONS.SET_LOADING, payload: true });
+
+    // Inicializar dados padrão se necessário
+    initializeUserData(userId).catch(console.error);
+
+    // Sincronizar transações
+    const transactionsRef = collection(db, 'users', userId, 'transactions');
+    const transactionsQuery = query(transactionsRef, orderBy('date', 'desc'));
+    const unsubscribeTransactions = onSnapshot(
+      transactionsQuery,
+      (snapshot) => {
+        const transactions = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: { transactions } });
+      },
+      (error) => {
+        console.error('Erro ao carregar transações:', error);
+        dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao carregar transações' });
       }
-    }
-    
-    setIsInitialized(true);
-  }, []);
+    );
 
-  // Salvar dados no localStorage apenas após inicialização
-  useEffect(() => {
-    if (isInitialized) {
-      localStorage.setItem('financial-data', JSON.stringify({
-        transactions: state.transactions,
-        categories: state.categories,
-        budgets: state.budgets,
-        goals: state.goals,
-        savings: state.savings
-      }));
-    }
-  }, [state.transactions, state.categories, state.budgets, state.goals, state.savings, isInitialized]);
+    // Sincronizar categorias
+    const categoriesRef = collection(db, 'users', userId, 'categories');
+    const unsubscribeCategories = onSnapshot(
+      categoriesRef,
+      (snapshot) => {
+        const categories = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: { categories } });
+      },
+      (error) => {
+        console.error('Erro ao carregar categorias:', error);
+        dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao carregar categorias' });
+      }
+    );
+
+    // Sincronizar orçamentos
+    const budgetsRef = collection(db, 'users', userId, 'budgets');
+    const unsubscribeBudgets = onSnapshot(
+      budgetsRef,
+      (snapshot) => {
+        const budgets = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: { budgets } });
+      },
+      (error) => {
+        console.error('Erro ao carregar orçamentos:', error);
+        dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao carregar orçamentos' });
+      }
+    );
+
+    // Sincronizar metas
+    const goalsRef = collection(db, 'users', userId, 'goals');
+    const unsubscribeGoals = onSnapshot(
+      goalsRef,
+      (snapshot) => {
+        const goals = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: { goals } });
+      },
+      (error) => {
+        console.error('Erro ao carregar metas:', error);
+        dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao carregar metas' });
+      }
+    );
+
+    // Sincronizar economias
+    const savingsRef = collection(db, 'users', userId, 'savings');
+    const unsubscribeSavings = onSnapshot(
+      savingsRef,
+      (snapshot) => {
+        const savings = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        dispatch({ type: ACTIONS.LOAD_DATA, payload: { savings } });
+        setIsInitialized(true);
+        dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+      },
+      (error) => {
+        console.error('Erro ao carregar economias:', error);
+        dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao carregar economias' });
+        setIsInitialized(true);
+        dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+      }
+    );
+
+    // Cleanup
+    return () => {
+      unsubscribeTransactions();
+      unsubscribeCategories();
+      unsubscribeBudgets();
+      unsubscribeGoals();
+      unsubscribeSavings();
+    };
+  }, [currentUser]);
 
   // Actions - Memoizadas para evitar re-renderizações desnecessárias
-  const addTransaction = useCallback((transaction) => {
-    dispatch({ type: ACTIONS.ADD_TRANSACTION, payload: transaction });
-  }, []);
+  const addTransaction = useCallback(async (transaction) => {
+    if (!currentUser) return;
+    
+    try {
+      const transactionsRef = collection(db, 'users', currentUser.uid, 'transactions');
+      await addDoc(transactionsRef, {
+        ...transaction,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar transação:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao adicionar transação' });
+    }
+  }, [currentUser]);
 
-  const updateTransaction = useCallback((transaction) => {
-    dispatch({ type: ACTIONS.UPDATE_TRANSACTION, payload: transaction });
-  }, []);
+  const updateTransaction = useCallback(async (transaction) => {
+    if (!currentUser || !transaction.id) return;
+    
+    try {
+      const transactionRef = doc(db, 'users', currentUser.uid, 'transactions', transaction.id);
+      const { id, ...transactionData } = transaction;
+      await updateDoc(transactionRef, {
+        ...transactionData,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar transação:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar transação' });
+    }
+  }, [currentUser]);
 
-  const deleteTransaction = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_TRANSACTION, payload: id });
-  }, []);
+  const deleteTransaction = useCallback(async (id) => {
+    if (!currentUser) return;
+    
+    try {
+      const transactionRef = doc(db, 'users', currentUser.uid, 'transactions', id);
+      await deleteDoc(transactionRef);
+    } catch (error) {
+      console.error('Erro ao deletar transação:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao deletar transação' });
+    }
+  }, [currentUser]);
 
-  const duplicateTransaction = useCallback((transaction) => {
+  const duplicateTransaction = useCallback(async (transaction) => {
+    if (!currentUser) return;
+    
     const { id, ...transactionData } = transaction;
     const duplicatedTransaction = {
       ...transactionData,
-      date: new Date().toISOString().split('T')[0], // Data atual
+      date: new Date().toISOString().split('T')[0]
     };
-    dispatch({ type: ACTIONS.ADD_TRANSACTION, payload: duplicatedTransaction });
-  }, []);
+    await addTransaction(duplicatedTransaction);
+  }, [currentUser, addTransaction]);
 
-  const addCategory = useCallback((category) => {
-    dispatch({ type: ACTIONS.ADD_CATEGORY, payload: category });
-  }, []);
+  const addCategory = useCallback(async (category) => {
+    if (!currentUser) return;
+    
+    try {
+      const categoriesRef = collection(db, 'users', currentUser.uid, 'categories');
+      await addDoc(categoriesRef, {
+        ...category,
+        createdAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar categoria:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao adicionar categoria' });
+    }
+  }, [currentUser]);
 
-  const updateCategory = useCallback((category) => {
-    dispatch({ type: ACTIONS.UPDATE_CATEGORY, payload: category });
-  }, []);
+  const updateCategory = useCallback(async (category) => {
+    if (!currentUser || !category.id) return;
+    
+    try {
+      const categoryRef = doc(db, 'users', currentUser.uid, 'categories', category.id);
+      const { id, ...categoryData } = category;
+      await updateDoc(categoryRef, categoryData);
+    } catch (error) {
+      console.error('Erro ao atualizar categoria:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar categoria' });
+    }
+  }, [currentUser]);
 
-  const deleteCategory = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_CATEGORY, payload: id });
-  }, []);
+  const deleteCategory = useCallback(async (id) => {
+    if (!currentUser) return;
+    
+    try {
+      const categoryRef = doc(db, 'users', currentUser.uid, 'categories', id);
+      await deleteDoc(categoryRef);
+    } catch (error) {
+      console.error('Erro ao deletar categoria:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao deletar categoria' });
+    }
+  }, [currentUser]);
 
-  const addBudget = useCallback((budget) => {
-    dispatch({ type: ACTIONS.ADD_BUDGET, payload: budget });
-  }, []);
+  const addBudget = useCallback(async (budget) => {
+    if (!currentUser) return;
+    
+    try {
+      const budgetsRef = collection(db, 'users', currentUser.uid, 'budgets');
+      await addDoc(budgetsRef, {
+        ...budget,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar orçamento:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao adicionar orçamento' });
+    }
+  }, [currentUser]);
 
-  const updateBudget = useCallback((budget) => {
-    dispatch({ type: ACTIONS.UPDATE_BUDGET, payload: budget });
-  }, []);
+  const updateBudget = useCallback(async (budget) => {
+    if (!currentUser || !budget.id) return;
+    
+    try {
+      const budgetRef = doc(db, 'users', currentUser.uid, 'budgets', budget.id);
+      const { id, ...budgetData } = budget;
+      await updateDoc(budgetRef, {
+        ...budgetData,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar orçamento:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar orçamento' });
+    }
+  }, [currentUser]);
 
-  const deleteBudget = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_BUDGET, payload: id });
-  }, []);
+  const deleteBudget = useCallback(async (id) => {
+    if (!currentUser) return;
+    
+    try {
+      const budgetRef = doc(db, 'users', currentUser.uid, 'budgets', id);
+      await deleteDoc(budgetRef);
+    } catch (error) {
+      console.error('Erro ao deletar orçamento:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao deletar orçamento' });
+    }
+  }, [currentUser]);
 
-  const addGoal = useCallback((goal) => {
-    dispatch({ type: ACTIONS.ADD_GOAL, payload: goal });
-  }, []);
+  const addGoal = useCallback(async (goal) => {
+    if (!currentUser) return;
+    
+    try {
+      const goalsRef = collection(db, 'users', currentUser.uid, 'goals');
+      await addDoc(goalsRef, {
+        ...goal,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar meta:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao adicionar meta' });
+    }
+  }, [currentUser]);
 
-  const updateGoal = useCallback((goal) => {
-    dispatch({ type: ACTIONS.UPDATE_GOAL, payload: goal });
-  }, []);
+  const updateGoal = useCallback(async (goal) => {
+    if (!currentUser || !goal.id) return;
+    
+    try {
+      const goalRef = doc(db, 'users', currentUser.uid, 'goals', goal.id);
+      const { id, ...goalData } = goal;
+      await updateDoc(goalRef, {
+        ...goalData,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar meta:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar meta' });
+    }
+  }, [currentUser]);
 
-  const deleteGoal = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_GOAL, payload: id });
-  }, []);
+  const deleteGoal = useCallback(async (id) => {
+    if (!currentUser) return;
+    
+    try {
+      const goalRef = doc(db, 'users', currentUser.uid, 'goals', id);
+      await deleteDoc(goalRef);
+    } catch (error) {
+      console.error('Erro ao deletar meta:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao deletar meta' });
+    }
+  }, [currentUser]);
 
-  const addSaving = useCallback((saving) => {
-    dispatch({ type: ACTIONS.ADD_SAVING, payload: saving });
-  }, []);
+  const addSaving = useCallback(async (saving) => {
+    if (!currentUser) return;
+    
+    try {
+      const savingsRef = collection(db, 'users', currentUser.uid, 'savings');
+      await addDoc(savingsRef, {
+        ...saving,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar economia:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao adicionar economia' });
+    }
+  }, [currentUser]);
 
-  const updateSaving = useCallback((saving) => {
-    dispatch({ type: ACTIONS.UPDATE_SAVING, payload: saving });
-  }, []);
+  const updateSaving = useCallback(async (saving) => {
+    if (!currentUser || !saving.id) return;
+    
+    try {
+      const savingRef = doc(db, 'users', currentUser.uid, 'savings', saving.id);
+      const { id, ...savingData } = saving;
+      await updateDoc(savingRef, {
+        ...savingData,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar economia:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar economia' });
+    }
+  }, [currentUser]);
 
-  const deleteSaving = useCallback((id) => {
-    dispatch({ type: ACTIONS.DELETE_SAVING, payload: id });
-  }, []);
+  const deleteSaving = useCallback(async (id) => {
+    if (!currentUser) return;
+    
+    try {
+      const savingRef = doc(db, 'users', currentUser.uid, 'savings', id);
+      await deleteDoc(savingRef);
+    } catch (error) {
+      console.error('Erro ao deletar economia:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao deletar economia' });
+    }
+  }, [currentUser]);
 
-  const updateGoalProgress = useCallback((goalId, amount) => {
-    dispatch({ type: ACTIONS.UPDATE_GOAL_PROGRESS, payload: { goalId, amount } });
-  }, []);
+  const updateGoalProgress = useCallback(async (goalId, amount) => {
+    if (!currentUser) return;
+    
+    try {
+      const goalRef = doc(db, 'users', currentUser.uid, 'goals', goalId);
+      await updateDoc(goalRef, {
+        currentAmount: amount,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar progresso da meta:', error);
+      dispatch({ type: ACTIONS.SET_ERROR, payload: 'Erro ao atualizar progresso da meta' });
+    }
+  }, [currentUser]);
 
   // Funções utilitárias
   const getTransactionsByMonth = (year, month) => {

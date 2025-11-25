@@ -262,7 +262,7 @@ const Transactions = () => {
 
     // Filtro por categoria
     if (filterCategory !== 'all') {
-      filtered = filtered.filter(t => t.categoryId === parseInt(filterCategory));
+      filtered = filtered.filter(t => t.categoryId === filterCategory); // Comparar como string
     }
 
     // Filtro por tipo
@@ -545,6 +545,12 @@ const Transactions = () => {
 
     return [
       {
+        title: 'Saldo Atual',
+        value: formatAmount(balance),
+        icon: Wallet,
+        color: balance >= 0 ? '#3B82F6' : '#EF4444'
+      },
+      {
         title: 'Receitas',
         value: formatAmount(totalIncome),
         icon: TrendingUp,
@@ -555,12 +561,6 @@ const Transactions = () => {
         value: formatAmount(totalExpense),
         icon: TrendingDown,
         color: '#EF4444'
-      },
-      {
-        title: 'Saldo Atual',
-        value: formatAmount(balance),
-        icon: Wallet,
-        color: balance >= 0 ? '#3B82F6' : '#EF4444'
       }
     ];
   }, [filteredTransactions]);
@@ -1145,7 +1145,7 @@ const Transactions = () => {
 
       {/* Modal de Detalhes */}
       {viewDetailsTransaction && (
-        <div className="detail-modal-overlay" onClick={handleCloseDetails}>
+        <div className="detail-modal-overlay">
           <div className="detail-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="detail-modal-header">
               <h2>Detalhes da Transação</h2>

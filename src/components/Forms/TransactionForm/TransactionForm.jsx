@@ -83,7 +83,7 @@ const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -95,18 +95,18 @@ const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
         description: formData.description,
         amount: parseFloat(formData.amount),
         type: formData.type,
-        categoryId: parseInt(formData.categoryId),
+        categoryId: formData.categoryId, // Manter como string (Firestore usa strings)
         date: formData.date,
         notes: formData.notes || ''
       };
 
       if (transaction) {
         // Editar transação existente
-        updateTransaction({ ...transactionData, id: transaction.id });
+        await updateTransaction({ ...transactionData, id: transaction.id });
         success('Transação atualizada com sucesso!');
       } else {
-        // Adicionar nova transação (o ID será gerado pelo reducer)
-        addTransaction(transactionData);
+        // Adicionar nova transação
+        await addTransaction(transactionData);
         success('Transação adicionada com sucesso!');
       }
 
@@ -123,7 +123,7 @@ const TransactionForm = ({ isOpen, onClose, transaction = null }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="transaction-form" onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <div className="header-content">

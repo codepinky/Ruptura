@@ -4,33 +4,73 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--bg-modal);
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height para mobile */
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  z-index: 1000;
-  padding: var(--space-4);
-  animation: fadeIn 0.2s ease;
+  z-index: 2000;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  touch-action: none;
+  isolation: isolate;
+  contain: layout style paint;
+  /* Prevenir zoom no modal */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Garantir que cubra toda a viewport incluindo safe areas */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+@media (min-width: 768px) {
+  .modal-overlay {
+    align-items: center;
   }
 }
 
 .reminder-form-modal {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
+  background: white;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
+  max-width: 100%;
+  max-height: 95dvh;
   overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-  animation: slideUp 0.3s ease;
+  overflow-x: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  contain: layout style paint;
+  isolation: isolate;
+  /* Margem para espaçamento do overlay quando necessário */
+  margin: var(--space-4);
+  margin-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+  margin-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  margin-left: calc(var(--space-4) + env(safe-area-inset-left, 0px));
+  margin-right: calc(var(--space-4) + env(safe-area-inset-right, 0px));
+}
+
+@media (min-width: 768px) {
+  .reminder-form-modal {
+    border-radius: var(--radius-2xl);
+    max-width: 600px;
+    max-height: 90dvh;
+    margin: var(--space-4);
+  }
+}
+
+/* Tema escuro */
+.reminder-form-modal.dark-theme {
+  background: #1f2937;
+  border: 1px solid #374151;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes slideUp {
@@ -101,13 +141,180 @@
 .form-group select {
   width: 100%;
   padding: var(--space-3);
+  min-height: 46px;
   background: var(--bg-input);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: clamp(1rem, 1.2vw + 0.5rem, 1rem);
   transition: all 0.2s ease;
   font-family: inherit;
+  box-sizing: border-box;
+  line-height: var(--line-height-base);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Container específico para input de data */
+.date-input-group {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  contain: layout;
+}
+
+/* Input de data - mesmo estilo do modal de transação */
+.date-input-group input[type="date"],
+.form-group input[type="date"] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-3);
+  min-height: 46px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background-color: white;
+  color: #374151;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  z-index: 1;
+}
+
+/* Tema escuro - input de data */
+.reminder-form-modal.dark-theme .date-input-group input[type="date"],
+.reminder-form-modal.dark-theme .form-group input[type="date"] {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+/* Esconder o indicador nativo do navegador */
+.date-input-group input[type="date"]::-webkit-calendar-picker-indicator,
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 3;
+  margin: 0;
+  padding: 0;
+}
+
+/* Firefox */
+.date-input-group input[type="date"]::-moz-calendar-picker-indicator,
+.form-group input[type="date"]::-moz-calendar-picker-indicator {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  right: 0;
+  top: 0;
+  cursor: pointer;
+  z-index: 3;
+}
+
+/* Foco no input de data */
+.date-input-group input[type="date"]:focus,
+.form-group input[type="date"]:focus {
+  outline: none;
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.reminder-form-modal.dark-theme .date-input-group input[type="date"]:focus,
+.reminder-form-modal.dark-theme .form-group input[type="date"]:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Erro no input de data */
+.date-input-group input[type="date"].error,
+.form-group input[type="date"].error {
+  border-color: #ef4444;
+}
+
+/* Input de hora - mesmo estilo do input de data */
+.date-input-group input[type="time"],
+.form-group input[type="time"] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-3);
+  min-height: 46px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background-color: white;
+  color: #374151;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  z-index: 1;
+}
+
+/* Tema escuro - input de hora */
+.reminder-form-modal.dark-theme .date-input-group input[type="time"],
+.reminder-form-modal.dark-theme .form-group input[type="time"] {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+/* Esconder o indicador nativo do navegador (hora) */
+.date-input-group input[type="time"]::-webkit-calendar-picker-indicator,
+.form-group input[type="time"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 3;
+  margin: 0;
+  padding: 0;
+}
+
+/* Firefox - hora */
+.date-input-group input[type="time"]::-moz-calendar-picker-indicator,
+.form-group input[type="time"]::-moz-calendar-picker-indicator {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  right: 0;
+  top: 0;
+  cursor: pointer;
+  z-index: 3;
+}
+
+/* Foco no input de hora */
+.date-input-group input[type="time"]:focus,
+.form-group input[type="time"]:focus {
+  outline: none;
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.reminder-form-modal.dark-theme .date-input-group input[type="time"]:focus,
+.reminder-form-modal.dark-theme .form-group input[type="time"]:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Erro no input de hora */
+.date-input-group input[type="time"].error,
+.form-group input[type="time"].error {
+  border-color: #ef4444;
 }
 
 .form-group input:focus,
@@ -178,9 +385,16 @@
   background: var(--bg-hover);
 }
 
-@media (max-width: 768px) {
-  .modal-overlay {
-    padding: var(--space-2);
+@media (max-width: 767px) {
+  .reminder-form-modal {
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    max-height: 100dvh;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px));
+    margin: 0;
+    margin-top: env(safe-area-inset-top, 0px);
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+    margin-left: env(safe-area-inset-left, 0px);
+    margin-right: env(safe-area-inset-right, 0px);
   }
 
   .form-row {

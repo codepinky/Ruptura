@@ -153,7 +153,7 @@ const BudgetForm = ({ isOpen, onClose, budget = null, onSubmit }) => {
 
     const budgetData = {
       name: formData.name.trim(),
-      categoryId: parseInt(formData.categoryId),
+      categoryId: formData.categoryId, // Manter como string (Firestore usa strings)
       limit: parseFloat(formData.limit),
       period: formData.period,
       ...(formData.period === 'monthly' && {
@@ -178,7 +178,7 @@ const BudgetForm = ({ isOpen, onClose, budget = null, onSubmit }) => {
   if (!isOpen) return null;
 
   const modalContent = (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="budget-form" onClick={(e) => e.stopPropagation()}>
         <div className="form-header">
           <h2 className="form-title">
